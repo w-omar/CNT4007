@@ -1,3 +1,4 @@
+package src;
 public abstract class Message {
     public static final int CHOKE = 0;
     public static final int UNCHOKE = 1;
