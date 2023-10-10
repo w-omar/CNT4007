@@ -1,4 +1,10 @@
+package src;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+
 
 public class Peer {
     //to be determined over course of runtime
@@ -20,6 +26,37 @@ public class Peer {
 
     private ArrayList<Boolean> bitField;
 
+    public Peer() throws FileNotFoundException {
+        readCFG();
+    }
+
+    //read config file helper
+    private void readCFG() throws FileNotFoundException {
+        ArrayList <String> cfgVars = new ArrayList<>();
+        try {
+            File cfg = new File("Common.cfg");
+            Scanner scanner = new Scanner(cfg);
+        
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split("\\s+");
+
+                if (parts.length == 2) {
+                    cfgVars.add(parts[1]);
+                    System.out.println(parts[1]);
+                }
+            }
+            scanner.close();
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        this.numberOfPreferredNeighbors = Integer.parseInt(cfgVars.get(0));
+        this.unchokingInterval = Integer.parseInt(cfgVars.get(1));
+        this.optimisticUnchokingInterval = Integer.parseInt(cfgVars.get(2));
+        this.fileName = cfgVars.get(3);
+        this.fileSize = Integer.parseInt(cfgVars.get(4));
+        this.pieceSize = Integer.parseInt(cfgVars.get(5));
+    }
     //writes to log
     private void log(String msg) {
         throw new java.lang.UnsupportedOperationException("Not implemented yet.");
@@ -46,7 +83,7 @@ public class Peer {
     * request           6
     * piece             7
     */
-    private void sendMessage(String peerID, Message msg) {
+    private void sendMessage(String peerID/*, Message msg*/) {
         throw new java.lang.UnsupportedOperationException("Not implemented yet.");
     }
     
