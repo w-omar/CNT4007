@@ -1,10 +1,10 @@
-package message;
+package src.message;
 import java.nio.ByteBuffer;
 
-class NotinterestedMessage implements Message {
+class BitfieldMessage implements Message {
     @Override
     public Message.Type getMessageType() {
-        return Message.Type.NOTINTERESTED;
+        return Message.Type.BITFIELD;
     }
 
     @Override

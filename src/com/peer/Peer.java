@@ -1,4 +1,4 @@
-package src;
+package com.peer;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -21,13 +21,25 @@ public class Peer {
     private int pieceSize;
     private String fileName;
     
+    //dictated by peerProcess
+    private String ID;
+    private int portNumber;
+    private boolean hasFile;
+
     //Each peer should write its log into the log file ‘log_peer_[peerID].log’ at the working directory
     private String logFileName;
 
     private ArrayList<Boolean> bitField;
 
-    public Peer() throws FileNotFoundException {
+    public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException {
+        this.ID = peerId;
+        this.portNumber = port;
+        this.hasFile = hasFile;
         readCFG();
+    }
+
+    public int getPortNumber() {
+        return portNumber;
     }
 
     //read config file helper
@@ -58,38 +70,6 @@ public class Peer {
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
     }
     //writes to log
-    private void log(String msg) {
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
-    }
-
-    //starts the socket server
-    public void initialize(String commonCFG) {
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
-    }
-
-    //creates TCP connections to peers, populate peersList
-    private void peerConnect(String peerCFG) {
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
-    }
-
-    /*
-    * type              value
-    * choke             0
-    * unchoke           1
-    * interested        2
-    * not interested    3
-    * have              4
-    * bitfield          5
-    * request           6
-    * piece             7
-    */
-    private void sendMessage(String peerID/*, Message msg*/) {
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
-    }
-    
-    private void listenForMessages() {
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
-    }
 
     /*  peer A calculates the downloading rate from each of its neighbors,
         respectively, during the previous unchoking interval. Among neighbors that are interested

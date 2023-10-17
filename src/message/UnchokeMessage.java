@@ -1,10 +1,10 @@
-package message;
+package src.message;
 import java.nio.ByteBuffer;
 
-class BitfieldMessage implements Message {
+class UnhokeMessage implements Message {
     @Override
     public Message.Type getMessageType() {
-        return Message.Type.BITFIELD;
+        return Message.Type.UNCHOKE;
     }
 
     @Override

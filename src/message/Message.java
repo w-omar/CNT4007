@@ -1,4 +1,4 @@
-package message;
+package src.message;
 import java.nio.ByteBuffer;
 
 public interface Message {
