@@ -1,10 +1,10 @@
-package message;
+package src.message;
 import java.nio.ByteBuffer;
 
-class ChokeMessage implements Message {
+class NotinterestedMessage implements Message {
     @Override
     public Message.Type getMessageType() {
-        return Message.Type.CHOKE;
+        return Message.Type.NOTINTERESTED;
     }
 
     @Override
