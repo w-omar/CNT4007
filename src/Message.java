@@ -1,132 +1,107 @@
-package src;
-public abstract class Message {
-    public static final int CHOKE = 0;
-    public static final int UNCHOKE = 1;
-    public static final int INTERESTED = 2;
-    public static final int NOT_INTERESTED = 3;
-    public static final int HAVE = 4;
-    public static final int BITFIELD = 5;
-    public static final int REQUEST = 6;
-    public static final int PIECE = 7;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.HexFormat;
+import exceptions.InvalidMessageTypeException;
+import exceptions.InvalidMessageByteStreamException;
 
-    private int type;
+public class Message {
 
-    public Message(int type) {
-        this.type = type;
+    public enum Type {
+        CHOKE,
+        UNCHOKE,
+        INTERESTED,
+        NOTINTERESTED,
+        HAVE,
+        BITFIELD,
+        REQUEST,
+        PIECE
     }
 
-    public int getType() {
-        return type;
+    private int messageLength;
+    private int payloadLength;
+    private Type type;
+    private byte[] payload;
+
+    public Message(byte[] msg_stream) throws Exception{
+
+        // All messages are at least 5 bytes long: Length (4) + Type (1)
+        if (msg_stream.length < 5) {
+            throw new InvalidMessageByteStreamException("message byte stream is too short");
+        }
+
+        // Parse the first 4 bytes to get length
+        byte[] lengthByteArr = new byte[4];
+        System.arraycopy(msg_stream, 0, lengthByteArr, 0, 4);
+        ByteBuffer buffer = ByteBuffer.wrap(lengthByteArr);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        int length = buffer.getInt();
+        this.messageLength = length;
+        this.payloadLength = length-1;
+
+        // Ensure that indicated message length concurrs with actual byte stream length
+        if ((this.messageLength + 4)!= msg_stream.length) {
+            throw new InvalidMessageByteStreamException("message byte stream does not match the indicated message length");
+        }
+
+        // Type is the 5th byte in stream
+        int typeInt = Byte.toUnsignedInt(msg_stream[4]);
+
+        // Set message type
+        if (typeInt == 0) this.type = Type.CHOKE;
+        else if (typeInt == 1) this.type = Type.UNCHOKE;
+        else if (typeInt == 2) this.type = Type.INTERESTED;
+        else if (typeInt == 3) this.type = Type.NOTINTERESTED;
+        else if (typeInt == 4) this.type = Type.HAVE;
+        else if (typeInt == 5) this.type = Type.BITFIELD;
+        else if (typeInt == 6) this.type = Type.REQUEST;
+        else if (typeInt == 7) this.type = Type.PIECE;
+        else {
+            throw new InvalidMessageTypeException("invalid message type given");
+        }
+        
+        // Parse message payload
+        if (payloadLength < 1) {
+            this.payload = null;
+        } else {
+            byte[] content = new byte[this.payloadLength];
+            System.arraycopy(msg_stream, 5, content, 0, payloadLength);
+            this.payload = content;
+        }
     }
 
-    // Inherited Functions Go Here
-    public abstract void sampleInheritedFunc();
-}
-
-// Choke
-public class ChokeMessage extends Message {
-    public ChokeMessage() {
-        super(CHOKE);
+    public int getMessageLength() {
+        return this.messageLength;
     }
 
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
-    }
-}
-
-// Unchoke
-public class UnchokeMessage extends Message {
-    public UnchokeMessage() {
-        super(UNCHOKE);
+    public int getPayloadLength() {
+        return this.payloadLength;
     }
 
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
+    public Type getType() {
+        return this.type;
     }
-}
-
-// Interested
-public class InterestedMessage extends Message {
-    public InterestedMessage() {
-        super(INTERESTED);
+    
+    public byte[] getPayload() {
+        return this.payload;
     }
 
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
-    }
-}
+    // Main method for testing
+    public static void main(String[] args) throws Exception {
+        // Message Length = 6 ; Type (1 Byte) + Payload (5 Bytes)
+        // Message Type = 4 ; 0x04 -> HAVE
+        // Message Payload = ASCII values for 'H', 'E', 'L', 'L', '0'
+        byte[] byteArr = {0x00, 0x00, 0x00, 0x06, 0x04, 0x48, 0x45, 0x4C, 0x4C, 0x4F};
 
-// Not Interested
-public class NotInterestedMessage extends Message {
-    public NotInterestedMessage() {
-        super(NOT_INTERESTED);
-    }
+        Message myMessage = new Message(byteArr);
+        System.out.println("Message Length:   " + myMessage.messageLength);
+        System.out.println("Payload Length:   " + myMessage.payloadLength);
+        System.out.println("Message Type:     " + myMessage.type);
+  
+        String payload = "";
+        for (byte i : myMessage.payload){
+            payload += (char) i;
+        }
 
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
-    }
-}
-
-// Have
-public class HaveMessage extends Message {
-    private int pieceIndex;
-
-    public HaveMessage(int pieceIndex) {
-        super(HAVE);
-        this.pieceIndex = pieceIndex;
-    }
-
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
-    }
-}
-
-// Bitfield
-public class BitfieldMessage extends Message {
-    private int pieceIndex;
-
-    public BitfieldMessage(int pieceIndex) {
-        super(BITFIELD);
-        this.pieceIndex = pieceIndex;
-    }
-
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
-    }
-}
-
-// Request
-public class RequestMessage extends Message {
-    private int pieceIndex;
-
-    public RequestMessage(int pieceIndex) {
-        super(REQUEST);
-        this.pieceIndex = pieceIndex;
-    }
-
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
-    }
-}
-
-// Piece
-public class PieceMessage extends Message {
-    private int pieceIndex;
-
-    public PieceMessage(int pieceIndex) {
-        super(PIECE);
-        this.pieceIndex = pieceIndex;
-    }
-
-    @Override
-    public void sampleInheritedFunc() {
-        System.out.println("Sample Inherited Function!");
+        System.out.println("Message Payload:  " + payload);
     }
 }
