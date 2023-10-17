@@ -2,15 +2,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class Logs {
-    private String peerID;
-    private String peer2ID;
     private LocalDateTime currentDateTime;
 
-    public Logs(int ID, int ID2) {
-        peerID = Integer.toString(ID);
-        peer2ID = Integer.toString(ID2);
+    public Logs() {
         currentDateTime = LocalDateTime.now();
     }
 
@@ -19,7 +16,7 @@ public class Logs {
         return currentDateTime.format(formatter);
     }
 
-    /*
+        /*
     try {
         FileWriter writer = new FileWriter(fileName);
 
@@ -37,7 +34,7 @@ public class Logs {
 
     */
 
-    private void writeToLogFile(String message) {
+    private void writeToLogFile(String peerID, String message) {
         String fileName = "log_peer_" + peerID + ".log";
         try (FileWriter writer = new FileWriter(fileName, true)) {
             writer.write(message + "\n");
@@ -47,53 +44,64 @@ public class Logs {
         }
     }
 
-    public void TCPLog() {
+    public void TCPLog(String peerID, String peer2ID) {
         String output = getFormattedTime() + ": Peer " + peerID + " makes a connection to Peer " + peer2ID;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void changeOfPreferredNeighborsLog() {
-        String output = getFormattedTime() + ": Peer " + peerID + " has the preferred neighbors"; // + list of neighbors
-        writeToLogFile(output);
+    public void changeOfPreferredNeighborsLog(String peerID, List<String> neighborList) {
+        StringBuilder outputBuilder = new StringBuilder();
+        outputBuilder.append(getFormattedTime()).append(": Peer ").append(peerID).append(" has the preferred neighbors");
+
+        for (int i = 0; i < neighborList.size(); i++) {
+            outputBuilder.append(" ").append(neighborList.get(i));
+            if (i == neighborList.size() - 1) {
+                outputBuilder.append(".");
+            } else {
+                outputBuilder.append(",");
+            }
+        }
+
+        writeToLogFile(peerID, outputBuilder.toString());
     }
 
-    public void changeOfOptimisticallyUnchokedNeighborLog(int neighborID) {
+    public void changeOfOptimisticallyUnchokedNeighborLog(String peerID, String peer2ID, int neighborID) {
         String output = getFormattedTime() + ": Peer " + peerID + " has the optimistically unchoked neighbor " + neighborID;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void chokingLog() {
+    public void chokingLog(String peerID, String peer2ID) {
         String output = getFormattedTime() + ": Peer " + peerID + " is choked by " + peer2ID;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void unchokingLog() {
+    public void unchokingLog(String peerID, String peer2ID) {
         String output = getFormattedTime() + ": Peer " + peerID + " is unchoked by " + peer2ID;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void haveLog(int pieceIndex) {
+    public void haveLog(String peerID, String peer2ID, int pieceIndex) {
         String output = getFormattedTime() + ": Peer " + peerID + " received the 'have' message from " + peer2ID + " for the piece " + pieceIndex;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void interestedLog() {
+    public void interestedLog(String peerID, String peer2ID) {
         String output = getFormattedTime() + ": Peer " + peerID + " received the 'interested' message from " + peer2ID;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void notInterestedLog() {
+    public void notInterestedLog(String peerID, String peer2ID) {
         String output = getFormattedTime() + ": Peer " + peerID + " received the 'not interested' message from " + peer2ID;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void downloadingLog(int pieceIndex, int numPieces) {
+    public void downloadingLog(String peerID, String peer2ID, int pieceIndex, int numPieces) {
         String output = getFormattedTime() + ": Peer " + peerID + " has downloaded the piece " + pieceIndex + " from " + peer2ID + ". Now the number of pieces it has is " + numPieces;
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 
-    public void completedDownloadLog() {
+    public void completedDownloadLog(String peerID) {
         String output = getFormattedTime() + ": Peer " + peerID + " has downloaded the complete file.";
-        writeToLogFile(output);
+        writeToLogFile(peerID, output);
     }
 }
