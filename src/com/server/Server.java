@@ -1,12 +1,20 @@
+package com.server;
+
 import java.net.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public class Server {
+import com.peer.Peer;
 
-	private static final int sPort = 8000;   //The server will be listening on this port number
+public class Server implements Runnable {
+	
+	private int port;
+	
+	public Server(int port) {
+		this.port = port;
+	}
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("The server is running."); 
