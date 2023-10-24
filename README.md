@@ -1,3 +1,9 @@
-# CNT4007
+# P2P
 
-The best project this class has ever seen.
+P2P project for CNT4007
+
+### Contributors
+- William Collado
+- Vincent Cardone
+- Jesus Jurado
+- Christopher Harm
