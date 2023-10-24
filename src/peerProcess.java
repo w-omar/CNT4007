@@ -17,11 +17,6 @@ public class peerProcess {
             throw new IllegalArgumentException("Usage: peerProcess <peer ID> <port> <has file>");
         }
         Peer peer = new Peer(args[0], Integer.parseInt(args[1]), Boolean.parseBoolean(args[2]));
-
-        //start server
-        Server server = new Server(peer.getPortNumber());
-
-        //start client
     }
 
     private void log(String msg) {

@@ -5,6 +5,7 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import src.com.server.Server;
 
 public class Peer {
     //to be determined over course of runtime
@@ -36,6 +37,14 @@ public class Peer {
         this.portNumber = port;
         this.hasFile = hasFile;
         readCFG();
+        init();
+    }
+
+    //starts server and client
+    private void init(){
+        Server server = new Server(portNumber);
+        Thread thread = new Thread(server);
+        thread.start();
     }
 
     public int getPortNumber() {
@@ -46,7 +55,7 @@ public class Peer {
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
         try {
-            File cfg = new File("Common.cfg");
+            File cfg = new File("src/Common.cfg");
             Scanner scanner = new Scanner(cfg);
         
             while (scanner.hasNextLine()) {
