@@ -1,10 +1,13 @@
+package src;
+
 import java.net.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import server.Server;
+import src.com.server.Server;
+import src.com.peer.Peer;
 
 public class peerProcess {
     //java peerProcess <peer ID> <port> <has file>
@@ -13,11 +16,6 @@ public class peerProcess {
             throw new IllegalArgumentException("Usage: peerProcess <peer ID> <port> <has file>");
         }
         Peer peer = new Peer(args[0], Integer.parseInt(args[1]), Boolean.parseBoolean(args[2]));
-
-        //start server
-        Server server = new Server(peer.getPortNumber());
-
-        //start client
     }
 
     private void log(String msg) {

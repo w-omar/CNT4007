@@ -1,10 +1,11 @@
-package com.peer;
+package src.com.peer;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import src.com.server.Server;
 
 public class Peer {
     //to be determined over course of runtime
@@ -36,6 +37,12 @@ public class Peer {
         this.portNumber = port;
         this.hasFile = hasFile;
         readCFG();
+        init();
+    }
+
+    //starts server and client
+    private void init(){
+        Server server = new Server(portNumber);
     }
 
     public int getPortNumber() {
