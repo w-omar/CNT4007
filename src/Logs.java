@@ -67,7 +67,7 @@ public class Logs {
         writeToLogFile(peerID, outputBuilder.toString());
     }
 
-    public void changeOfOptimisticallyUnchokedNeighborLog(String peerID, String peer2ID, int neighborID) {
+    public void changeOfOptimisticallyUnchokedNeighborLog(String peerID, int neighborID) {
         String output = getFormattedTime() + ": Peer " + peerID + " has the optimistically unchoked neighbor " + neighborID;
         writeToLogFile(peerID, output);
     }
