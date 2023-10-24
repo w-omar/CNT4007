@@ -1,4 +1,4 @@
-package com.peer;
+package src.com.peer;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
