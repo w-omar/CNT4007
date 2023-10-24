@@ -80,6 +80,13 @@ public class Peer {
     }
     //writes to log
 
+    //connect to peer
+    public void establishConnection(String peerID, String hostName, int port) {
+        //TODO connect to peer
+        //TODO update peersList
+        throw new UnsupportedOperationException();
+    }
+
     /*  peer A calculates the downloading rate from each of its neighbors,
         respectively, during the previous unchoking interval. Among neighbors that are interested
         in its data, peer A picks k neighbors that has fed its data at the highest rate. If more than
