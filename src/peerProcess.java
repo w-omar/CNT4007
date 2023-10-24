@@ -8,13 +8,14 @@ import java.util.*;
 
 import src.com.server.Server;
 import src.com.peer.Peer;
+import src.exceptions.InvalidPeerProcessArgumentsException;
 
 public class peerProcess {
     //java peerProcess <peer ID> <port> <has file>
     public static void main(String[] args) throws Exception {
         System.out.println("Running Main from peerProcess.java");
         if (args.length != 3) {
-            throw new IllegalArgumentException("Usage: peerProcess <peer ID> <port> <has file>");
+            throw new InvalidPeerProcessArgumentsException("Usage: peerProcess <peer ID> <port> <has file>");
         }
         Peer peer = new Peer(args[0], Integer.parseInt(args[1]), Boolean.parseBoolean(args[2]));
     }
@@ -45,6 +46,6 @@ public class peerProcess {
 
 class ClientThread implements Runnable {
     public void run() {
-
+        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
     }
 }
