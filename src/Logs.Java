@@ -2,27 +2,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class Logs {
-    public String peerID;
-    public String peer2ID;
-    
+    private LocalDateTime currentDateTime;
 
-    public ID(int ID, int ID2){
-        peerID = Integer.toString(ID);
-        peer2ID = Integer.toString(ID2);
+    public Logs() {
+        currentDateTime = LocalDateTime.now();
     }
 
-    LocalDateTime currentDateTime = LocalDateTime.now();
+    private String getFormattedTime() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return currentDateTime.format(formatter);
+    }
 
-        // Define a custom date and time format
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        // Format and print the current date and time
-    String time = currentDateTime.format(formatter);
-
-    String fileName = "log_peer_" + peerID + ".log";
-/*
+        /*
     try {
         FileWriter writer = new FileWriter(fileName);
 
@@ -40,55 +34,74 @@ public class Logs {
 
     */
 
-   public void TCPLog{
-    String output = time + ": Peer " + peerID + " makes  a connection to Peer " + peer2ID;
-    //Write to file
-   }
+    private void writeToLogFile(String peerID, String message) {
+        String fileName = "log_peer_" + peerID + ".log";
+        try (FileWriter writer = new FileWriter(fileName, true)) {
+            writer.write(message + "\n");
+            System.out.println("Data has been written to " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-   public void changeOfPreferredNeighborsLog{
-    String output = time + ": Peer " + peerID + " has the preferred neighors"; // + list of neighbors
-    //Write to file
-   }
+    public void TCPLog(String peerID, String peer2ID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " makes a connection to Peer " + peer2ID;
+        writeToLogFile(peerID, output);
+    }
 
-   public void changeOfOptimisticallyUnchokedNeighborLog{
-    String output = time + ": Peer " + peerID + " has the optimistically unchoked neighbor "; // + neighborID
-    //Write to file
-   }
+    public void changeOfPreferredNeighborsLog(String peerID, List<String> neighborList) {
+        StringBuilder outputBuilder = new StringBuilder();
+        outputBuilder.append(getFormattedTime()).append(": Peer ").append(peerID).append(" has the preferred neighbors");
 
-   public void chokingLog{
-    String output = time + ": Peer " + peerID + "is choked by " + peer2ID;
-    //write to file
-   }
+        for (int i = 0; i < neighborList.size(); i++) {
+            outputBuilder.append(" ").append(neighborList.get(i));
+            if (i == neighborList.size() - 1) {
+                outputBuilder.append(".");
+            } else {
+                outputBuilder.append(",");
+            }
+        }
 
-   public void UnchokingLog{
-    String output = time + ": Peer " + peerID + "is unchoked by " + peer2ID;
-    //write to file
-   }
+        writeToLogFile(peerID, outputBuilder.toString());
+    }
 
-   public void haveLog{
-    String output = time + ": Peer " + peerID + " received the \'have\' message from " + peer2ID + "for the piece"; // + piece index
-    //Write to file
-   }
+    public void changeOfOptimisticallyUnchokedNeighborLog(String peerID, String peer2ID, int neighborID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " has the optimistically unchoked neighbor " + neighborID;
+        writeToLogFile(peerID, output);
+    }
 
-   public void interestedLog{
-    String output = time + ": Peer " + peerID + " received the \'interested\' message from " + peer2ID;
-    //Write to file
+    public void chokingLog(String peerID, String peer2ID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " is choked by " + peer2ID;
+        writeToLogFile(peerID, output);
+    }
 
-   }
+    public void unchokingLog(String peerID, String peer2ID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " is unchoked by " + peer2ID;
+        writeToLogFile(peerID, output);
+    }
 
-   public void interestedLog{
-    String output = time + ": Peer " + peerID + " received the \'not interested\' message from " + peer2ID;
-    //Write to file
-   }
+    public void haveLog(String peerID, String peer2ID, int pieceIndex) {
+        String output = getFormattedTime() + ": Peer " + peerID + " received the 'have' message from " + peer2ID + " for the piece " + pieceIndex;
+        writeToLogFile(peerID, output);
+    }
 
-   public void downloadingLog{
-    String output = time + ": Peer " + peerID + "has downloaded the piece " + /*piece index + */ " from " + peer2ID + ". Now the number of pieces it has is "; // + number of pieces 
-    //Write to file 
-   }
+    public void interestedLog(String peerID, String peer2ID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " received the 'interested' message from " + peer2ID;
+        writeToLogFile(peerID, output);
+    }
 
-   public void completedDownloadLog{
-        String output = time + ": Peer " + peerID + " has downloaded the complete file.";
-        //Write to file
-   }
+    public void notInterestedLog(String peerID, String peer2ID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " received the 'not interested' message from " + peer2ID;
+        writeToLogFile(peerID, output);
+    }
 
+    public void downloadingLog(String peerID, String peer2ID, int pieceIndex, int numPieces) {
+        String output = getFormattedTime() + ": Peer " + peerID + " has downloaded the piece " + pieceIndex + " from " + peer2ID + ". Now the number of pieces it has is " + numPieces;
+        writeToLogFile(peerID, output);
+    }
+
+    public void completedDownloadLog(String peerID) {
+        String output = getFormattedTime() + ": Peer " + peerID + " has downloaded the complete file.";
+        writeToLogFile(peerID, output);
+    }
 }
