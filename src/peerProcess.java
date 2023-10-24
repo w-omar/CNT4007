@@ -12,6 +12,7 @@ import src.com.peer.Peer;
 public class peerProcess {
     //java peerProcess <peer ID> <port> <has file>
     public static void main(String[] args) throws Exception {
+        System.out.println("Running Main from peerProcess.java");
         if (args.length != 3) {
             throw new IllegalArgumentException("Usage: peerProcess <peer ID> <port> <has file>");
         }
