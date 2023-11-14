@@ -1,11 +1,14 @@
 package src.com.peer;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 import src.com.server.Server;
+import src.com.client.Client;
 
 public class Peer {
     //to be determined over course of runtime
@@ -21,7 +24,7 @@ public class Peer {
     private int fileSize;
     private int pieceSize;
     private String fileName;
-    
+
     //dictated by peerProcess
     private String ID;
     private int portNumber;
@@ -37,6 +40,7 @@ public class Peer {
         this.portNumber = port;
         this.hasFile = hasFile;
         readCFG();
+        initBitfield();
         init();
     }
 
@@ -80,11 +84,23 @@ public class Peer {
     }
     //writes to log
 
+    //initializes bitfields
+    public void initBitfield(){
+        int pieceCount = fileSize / pieceSize;
+        for (int i = 0; i < pieceCount; i++) {
+            bitField.add(hasFile);
+        }
+    }
+
     //connect to peer
-    public void establishConnection(String peerID, String hostName, int port) {
-        //TODO connect to peer
+    public void establishConnection(String peerID, String hostName, int port) throws IOException {
         //TODO update peersList
-        throw new UnsupportedOperationException();
+        peersList.add(peerID);
+
+        //TODO connect to peer
+        Client client = new Client(hostName, port);
+        Thread thread = new Thread(client);
+        thread.start();
     }
 
     /*  peer A calculates the downloading rate from each of its neighbors,
