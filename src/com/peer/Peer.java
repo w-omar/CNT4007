@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Random;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -23,6 +24,7 @@ public class Peer {
     private int optimisticUnchokingInterval;
     private int fileSize;
     private int pieceSize;
+    private int pieceCount;
     private String fileName;
 
     //dictated by peerProcess
@@ -81,12 +83,13 @@ public class Peer {
         this.fileName = cfgVars.get(3);
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
+        this.pieceCount = fileSize / pieceSize;
     }
     //writes to log
 
     //initializes bitfields
     public void initBitfield(){
-        int pieceCount = fileSize / pieceSize;
+        bitField = new ArrayList<Boolean>();
         for (int i = 0; i < pieceCount; i++) {
             bitField.add(hasFile);
         }
@@ -118,11 +121,27 @@ public class Peer {
         throw new java.lang.UnsupportedOperationException("Not implemented yet.");
     }
 
-    /*  Suppose that peer A receives an ‘unchoke’ message from peer B. Peer A selects a piece
-        randomly among the pieces that peer B has, and peer A does not have, and peer A has
-        not requested yet.
-    */
+    // Selects random index of a piece that the peer needs from another peer
     private int selectPiece(ArrayList<Boolean> peerBitField) {
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
+        // Populates an array with all indices of valid pieces
+        ArrayList<Integer> availableIndexes = new ArrayList<Integer>();
+        for (int i = 0; i < pieceCount; i++) {
+            if (peerBitField.get(i) && !bitField.get(i)) {
+                availableIndexes.add(i);
+            }
+        }
+        // Returns random index from available pieces
+        if (!availableIndexes.isEmpty()) {
+            Random rand = new Random();
+            return availableIndexes.get(rand.nextInt(availableIndexes.size()));
+        } else return -1;
+    }
+
+    // Checks if peer has all parts of a file
+    private boolean hasCompleteFile() {
+        for (int i = 0; i < bitField.size(); i++) {
+            if (!bitField.get(i)) return false;
+        }
+        return true;
     }
 }
