@@ -3,12 +3,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Random;
 import java.io.File;
 import java.io.FileNotFoundException;
-import src.Logs;
+
 import src.com.server.Server;
 import src.com.client.Client;
 
@@ -37,9 +36,6 @@ public class Peer {
     private String logFileName;
 
     private ArrayList<Boolean> bitField;
-
-    private Map<String, Integer> piecesDownloaded;
-
 
     public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException {
         this.ID = peerId;
@@ -108,10 +104,6 @@ public class Peer {
         Client client = new Client(hostName, port);
         Thread thread = new Thread(client);
         thread.start();
-
-        Logs log = new Logs();
-        //ID is peer1 and peerID is peer 2.
-        log.TCPLog(ID, peerID);
     }
 
     /*  peer A calculates the downloading rate from each of its neighbors,
@@ -126,50 +118,23 @@ public class Peer {
         and stop sending pieces
     */
     private ArrayList<Peer> determinePreferredNeighbors(ArrayList<Peer> interestedPeers) {
-        //Will probably have to move this log block to where preferredneighbors are changed
-        Logs log = new Logs();
-        ArrayList<String> IDList = new ArrayList<>();
-        for(Peer peer: interestedPeers){
-            IDList.add(peer.ID);
-        }
-        log.changeOfPreferredNeighborsLog(ID, IDList);
-        //End of log block
         throw new java.lang.UnsupportedOperationException("Not implemented yet.");
-
     }
 
     // Selects random index of a piece that the peer needs from another peer
-    private int selectPiece(ArrayList<Boolean> peerBitField, String peer2ID) {
+    private int selectPiece(ArrayList<Boolean> peerBitField) {
         // Populates an array with all indices of valid pieces
-        Logs log = new Logs();
         ArrayList<Integer> availableIndexes = new ArrayList<Integer>();
         for (int i = 0; i < pieceCount; i++) {
             if (peerBitField.get(i) && !bitField.get(i)) {
                 availableIndexes.add(i);
             }
         }
-        //start pieces downloaded counter
-        if (!piecesDownloaded.containsKey(ID)){
-            piecesDownloaded.put(ID, 1);
-        }
-        else{
-            Integer temp = piecesDownloaded.get(ID);
-            piecesDownloaded.put(ID, temp + 1);
-        }
-
         // Returns random index from available pieces
         if (!availableIndexes.isEmpty()) {
             Random rand = new Random();
-            Integer pieceInd = availableIndexes.get(rand.nextInt(availableIndexes.size()));
-            //Download Log
-            log.downloadingLog(ID, peer2ID, pieceInd, pieceSize);
-
-            return pieceInd;
-        } else{
-            //reset piece counter to 0 for next download
-            piecesDownloaded.put(ID, 0);
-            return -1;
-        }
+            return availableIndexes.get(rand.nextInt(availableIndexes.size()));
+        } else return -1;
     }
 
     // Checks if peer has all parts of a file
@@ -177,10 +142,6 @@ public class Peer {
         for (int i = 0; i < bitField.size(); i++) {
             if (!bitField.get(i)) return false;
         }
-        Logs log = new Logs();
-        log.completedDownloadLog(ID);
-
         return true;
-
     }
 }
