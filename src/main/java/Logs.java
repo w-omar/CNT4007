@@ -65,32 +65,32 @@ public class Logs {
         writeToLogFile(peerID, outputBuilder.toString());
     }
 
-    public void changeOfOptimisticallyUnchokedNeighborLog(String peerID, int neighborID) {
+    public void changeOfOptimisticallyUnchokedNeighborLog(String peerID, int neighborID) { //TODO
         String output = getFormattedTime() + ": Peer " + peerID + " has the optimistically unchoked neighbor " + neighborID;
         writeToLogFile(peerID, output);
     }
 
-    public void chokingLog(String peerID, String peer2ID) {
+    public void chokingLog(String peerID, String peer2ID) { //TODO Message.java
         String output = getFormattedTime() + ": Peer " + peerID + " is choked by " + peer2ID;
         writeToLogFile(peerID, output);
     }
 
-    public void unchokingLog(String peerID, String peer2ID) {
+    public void unchokingLog(String peerID, String peer2ID) { //TODO Message.java
         String output = getFormattedTime() + ": Peer " + peerID + " is unchoked by " + peer2ID;
         writeToLogFile(peerID, output);
     }
 
-    public void haveLog(String peerID, String peer2ID, int pieceIndex) {
+    public void haveLog(String peerID, String peer2ID, int pieceIndex) { //TODO Message.java
         String output = getFormattedTime() + ": Peer " + peerID + " received the 'have' message from " + peer2ID + " for the piece " + pieceIndex;
         writeToLogFile(peerID, output);
     }
 
-    public void interestedLog(String peerID, String peer2ID) {
+    public void interestedLog(String peerID, String peer2ID) { //TODO Message.java
         String output = getFormattedTime() + ": Peer " + peerID + " received the 'interested' message from " + peer2ID;
         writeToLogFile(peerID, output);
     }
 
-    public void notInterestedLog(String peerID, String peer2ID) {
+    public void notInterestedLog(String peerID, String peer2ID) { //TODO Message.java
         String output = getFormattedTime() + ": Peer " + peerID + " received the 'not interested' message from " + peer2ID;
         writeToLogFile(peerID, output);
     }
