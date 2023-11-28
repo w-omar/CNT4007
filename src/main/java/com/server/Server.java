@@ -1,4 +1,4 @@
-package src.com.server;
+package com.server;
 
 import java.net.*;
 import java.io.*;
@@ -6,7 +6,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import src.Message;
+import Message.Message;
 
 public class Server implements Runnable{
 	
