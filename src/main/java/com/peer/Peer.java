@@ -1,16 +1,15 @@
-package src.com.peer;
+package com.peer;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Random;
 import java.io.File;
-import java.io.FileNotFoundException;
-import src.Logs;
-import src.com.server.Server;
-import src.com.client.Client;
+
+import Logs.Logs;
+import com.server.Server;
+import com.client.Client;
 
 public class Peer {
     //to be determined over course of runtime
