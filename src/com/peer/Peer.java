@@ -1,20 +1,20 @@
 package src.com.peer;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Random;
+
+import src.Logs;
+import src.com.client.Client;
+import src.com.server.Server;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import src.Logs;
-import src.com.server.Server;
-import src.com.client.Client;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
 
 public class Peer {
     //to be determined over course of runtime
-    private ArrayList<String> peersList;
+    private ArrayList<String> peersList = new ArrayList<>();
     private ArrayList<String> interestedPeers;
     private ArrayList<String> preferredNeighbors;
     private String optimisticNeighbor;
@@ -126,6 +126,10 @@ public class Peer {
         and stop sending pieces
     */
     private ArrayList<Peer> determinePreferredNeighbors(ArrayList<Peer> interestedPeers) {
+        if (interestedPeers.size() <= numberOfPreferredNeighbors){
+            return interestedPeers;
+        }
+
         ArrayList<Double> downloadRates = new ArrayList<>();
 
         // Calculate download rates for each interested peer
@@ -136,7 +140,7 @@ public class Peer {
 
         // Select the top k peers based on download rate
         ArrayList<Peer> preferredNeighbors = new ArrayList<>();
-        for (int i = 0; i < numberOfPreferredNeighbors && i < interestedPeers.size(); i++) {
+        for (int i = 0; i < numberOfPreferredNeighbors; i++) {
             // Find the index of the peer with the highest download rate
             int maxIndex = findMaxDownloadRateIndex(downloadRates);
 
@@ -158,9 +162,11 @@ public class Peer {
     }
 
     // Calculate download rate for a peer
-    private double calculateDownloadRate(Peer peer) {
-        //Track the number of pieces downloaded in a given time.
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
+    private double calculateDownloadRate(Peer peer) {//TODO
+        Random random = new Random();
+
+        int randomInt = random.nextInt();
+        return randomInt;
     }
 
     // Find the index of the peer with the highest download rate
@@ -220,6 +226,20 @@ public class Peer {
         log.completedDownloadLog(ID);
 
         return true;
+    }
+//need a way to call this every interval
+    private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers) {
+        Random rand = new Random();
+        int randomIndex = rand.nextInt(interestedPeers.size());
+
+        Peer newOptimisticNeighbor = interestedPeers.get(randomIndex);
+
+        // Log the change of optimistic unchoked neighbor
+        Logs log = new Logs();
+        log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor.ID);
+
+        optimisticNeighbor = newOptimisticNeighbor.ID;
 
     }
+
 }

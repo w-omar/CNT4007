@@ -1,14 +1,11 @@
 package src;
 
-import java.net.*;
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.util.*;
-
-import src.com.server.Server;
 import src.com.peer.Peer;
-import src.exceptions.InvalidPeerProcessArgumentsException;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class peerProcess {
     //java peerProcess <peer ID>
@@ -66,39 +63,6 @@ public class peerProcess {
     * unchoke neighbor   8
     * prefered neighbor  9
     *
-    //POTENTIAL IMPLEMENTATION
-    Log log = new Log();
-    if(type == 0){
-        log.chokingLog(peerID, peer2ID);
-    }
-    else if (type == 1){
-        log.unchokingLog(peerID, peer2ID);
-    }
-    else if (type == 2){
-        log.interestedLog(peerID, peer2ID);
-    }
-    else if (type == 3){
-        log.notInterestedLog(peerID, peer2ID);
-    }
-    else if (type == 4){
-        log.haveLog(peerID, peer2ID, pieceIndex);
-    }
-    else if (type == 5){
-        //NO BITFIELD LOG
-        log.downloadingLog(peerID, peer2ID, pieceIndex, numPieces);
-     }
-    else if (type == 6){
-        log.completedLog(peerID);
-     }
-    else if (type == 7){
-        log.TCPLog(peerID, peer2ID);
-    }
-    else if (type == 8){
-    *   log.changeOfOptimisticallyUnchokedNeighborLog(peerID, neighborID);
-    }
-    else if (type == 9){
-        log.changeOfPreferredNeighborsLog(peerID, neighborsList);
-     }
      */
     private void sendMessage(String peerID/*, Message msg*/) {
         throw new java.lang.UnsupportedOperationException("Not implemented yet.");
