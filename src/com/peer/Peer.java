@@ -7,6 +7,7 @@ import java.util.Scanner;
 import java.util.Random;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.Math;
 
 import src.com.server.Server;
 import src.com.client.Client;
@@ -83,7 +84,7 @@ public class Peer {
         this.fileName = cfgVars.get(3);
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
-        this.pieceCount = fileSize / pieceSize;
+        this.pieceCount = (int) Math.ceil(fileSize / pieceSize);
     }
     //writes to log
 
