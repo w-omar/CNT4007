@@ -227,19 +227,24 @@ public class Peer {
 
         return true;
     }
-//need a way to call this every interval
-    private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers) {
-        Random rand = new Random();
-        int randomIndex = rand.nextInt(interestedPeers.size());
+//need a way to call this every interval and to determine if neighbor is not already unchoked
+private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers, ArrayList<Peer> preferredNeighbors) {
+    ArrayList<Peer> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
+    potentialOptimisticNeighbors.removeAll(preferredNeighbors);
 
-        Peer newOptimisticNeighbor = interestedPeers.get(randomIndex);
+    if (!potentialOptimisticNeighbors.isEmpty()) {
+        Random rand = new Random();
+        int randomIndex = rand.nextInt(potentialOptimisticNeighbors.size());
+
+        Peer newOptimisticNeighbor = potentialOptimisticNeighbors.get(randomIndex);
 
         // Log the change of optimistic unchoked neighbor
         Logs log = new Logs();
         log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor.ID);
 
         optimisticNeighbor = newOptimisticNeighbor.ID;
-
     }
+}
+
 
 }
