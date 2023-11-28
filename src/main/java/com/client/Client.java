@@ -6,7 +6,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import src.Message;
+import Message.Message;
 
 public class Client implements Runnable {
     Socket requestSocket;           //socket connect to the server

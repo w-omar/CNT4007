@@ -61,7 +61,7 @@ public class Peer {
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
         try {
-            File cfg = new File("src/Common.cfg");
+            File cfg = new File("Common.cfg");
             Scanner scanner = new Scanner(cfg);
         
             while (scanner.hasNextLine()) {

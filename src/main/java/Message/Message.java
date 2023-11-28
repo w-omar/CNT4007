@@ -1,8 +1,10 @@
+package Message;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 //import java.util.HexFormat;
-import src.exceptions.InvalidMessageTypeException;
-import src.exceptions.InvalidMessageByteStreamException;
+import exceptions.InvalidMessageTypeException;
+import exceptions.InvalidMessageByteStreamException;
 
 public class Message {
 
@@ -87,21 +89,21 @@ public class Message {
 
     // Main method for testing
     public static void main(String[] args) throws Exception {
-        // Message Length = 6 ; Type (1 Byte) + Payload (5 Bytes)
-        // Message Type = 4 ; 0x04 -> HAVE
-        // Message Payload = ASCII values for 'H', 'E', 'L', 'L', '0'
+        // Message.Message Length = 6 ; Type (1 Byte) + Payload (5 Bytes)
+        // Message.Message Type = 4 ; 0x04 -> HAVE
+        // Message.Message Payload = ASCII values for 'H', 'E', 'L', 'L', '0'
         byte[] byteArr = {0x00, 0x00, 0x00, 0x06, 0x04, 0x48, 0x45, 0x4C, 0x4C, 0x4F};
 
         Message myMessage = new Message(byteArr);
-        System.out.println("Message Length:   " + myMessage.messageLength);
+        System.out.println("Message.Message Length:   " + myMessage.messageLength);
         System.out.println("Payload Length:   " + myMessage.payloadLength);
-        System.out.println("Message Type:     " + myMessage.type);
+        System.out.println("Message.Message Type:     " + myMessage.type);
   
         String payload = "";
         for (byte i : myMessage.payload){
             payload += (char) i;
         }
 
-        System.out.println("Message Payload:  " + payload);
+        System.out.println("Message.Message Payload:  " + payload);
     }
 }
