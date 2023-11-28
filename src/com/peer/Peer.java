@@ -126,17 +126,56 @@ public class Peer {
         and stop sending pieces
     */
     private ArrayList<Peer> determinePreferredNeighbors(ArrayList<Peer> interestedPeers) {
-        //Will probably have to move this log block to where preferredneighbors are changed
+        ArrayList<Double> downloadRates = new ArrayList<>();
+
+        // Calculate download rates for each interested peer
+        for (Peer peer : interestedPeers) {
+            double downloadRate = calculateDownloadRate(peer);
+            downloadRates.add(downloadRate);
+        }
+
+        // Select the top k peers based on download rate
+        ArrayList<Peer> preferredNeighbors = new ArrayList<>();
+        for (int i = 0; i < numberOfPreferredNeighbors && i < interestedPeers.size(); i++) {
+            // Find the index of the peer with the highest download rate
+            int maxIndex = findMaxDownloadRateIndex(downloadRates);
+
+            preferredNeighbors.add(interestedPeers.get(maxIndex));
+
+            // Set the download rate of the selected peer to a very low value to avoid selecting it again
+            downloadRates.set(maxIndex, Double.MIN_VALUE);
+        }
+
+        // Logging the preferred neighbors list
         Logs log = new Logs();
         ArrayList<String> IDList = new ArrayList<>();
-        for(Peer peer: interestedPeers){
+        for (Peer peer : preferredNeighbors) {
             IDList.add(peer.ID);
         }
         log.changeOfPreferredNeighborsLog(ID, IDList);
-        //End of log block
-        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
 
+        return preferredNeighbors;
     }
+
+    // Calculate download rate for a peer
+    private double calculateDownloadRate(Peer peer) {
+        //Track the number of pieces downloaded in a given time.
+        throw new java.lang.UnsupportedOperationException("Not implemented yet.");
+    }
+
+    // Find the index of the peer with the highest download rate
+    private int findMaxDownloadRateIndex(ArrayList<Double> downloadRates) {
+        double maxDownloadRate = Double.MIN_VALUE;
+        int maxIndex = -1;
+        for (int i = 0; i < downloadRates.size(); i++) {
+            if (downloadRates.get(i) > maxDownloadRate) {
+                maxDownloadRate = downloadRates.get(i);
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
 
     // Selects random index of a piece that the peer needs from another peer
     private int selectPiece(ArrayList<Boolean> peerBitField, String peer2ID) {
