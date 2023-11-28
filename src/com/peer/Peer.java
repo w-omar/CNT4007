@@ -246,5 +246,4 @@ private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers, ArrayList
     }
 }
 
-
 }
