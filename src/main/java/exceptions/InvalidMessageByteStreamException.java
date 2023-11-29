@@ -1,4 +1,4 @@
-package src.exceptions;
+package exceptions;
 
 public class InvalidMessageByteStreamException extends Exception {
     public InvalidMessageByteStreamException (String message) {

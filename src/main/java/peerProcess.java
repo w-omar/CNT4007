@@ -1,14 +1,8 @@
-package src;
-
-import java.net.*;
 import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
 import java.util.*;
 
-import src.com.server.Server;
-import src.com.peer.Peer;
-import src.exceptions.InvalidPeerProcessArgumentsException;
+import com.server.Server;
+import com.peer.Peer;
 
 public class peerProcess {
     //java peerProcess <peer ID>
@@ -23,7 +17,7 @@ public class peerProcess {
         //read PeerInfo.cfg
         ArrayList<String[]> peersToConnect = new ArrayList<>();
         try {
-            File cfg = new File("src/PeerInfo.cfg");
+            File cfg = new File("PeerInfo.cfg");
             Scanner scanner = new Scanner(cfg);
 
             boolean done = false;
@@ -100,7 +94,7 @@ public class peerProcess {
         log.changeOfPreferredNeighborsLog(peerID, neighborsList);
      }
      */
-    private void sendMessage(String peerID/*, Message msg*/) {
+    private void sendMessage(String peerID/*, Message.Message msg*/) {
         throw new java.lang.UnsupportedOperationException("Not implemented yet.");
     }
     

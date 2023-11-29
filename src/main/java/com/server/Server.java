@@ -1,4 +1,4 @@
-package src.com.server;
+package com.server;
 
 import java.net.*;
 import java.io.*;
@@ -6,8 +6,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import src.Logs;
-import src.Message;
+import Message.Message;
 
 public class Server implements Runnable{
 	
@@ -73,44 +72,7 @@ public class Server implements Runnable{
 						//receive the message sent from the client
 						message = new Message((byte[]) in.readObject());
 						//TODO: Log message received
-						src.Logs log = new Logs();
-						switch (message.getType()) {
-							case HAVE:
-								//log.haveLog();
-								break;
-							case CHOKE:
-								//log.chokingLog();
-								break;
-							case UNCHOKE:
-								//log.unchokingLog();
-								break;
-							case NOTINTERESTED:
-								//log.notInterestedLog();
-								break;
-							case INTERESTED:
-								//log.interestedLog();
-								break;
-						}
 						//TODO: response logic
-						switch (message.getType()) {
-							case CHOKE:
-
-								break;
-							case UNCHOKE:
-								break;
-							case INTERESTED:
-								break;
-							case NOTINTERESTED:
-								break;
-							case HAVE:
-								break;
-							case BITFIELD:
-								break;
-							case REQUEST:
-								break;
-							case PIECE:
-								break;
-						}
 					}
 				}
 				catch(ClassNotFoundException classnot){
