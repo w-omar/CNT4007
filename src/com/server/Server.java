@@ -7,18 +7,22 @@ import java.nio.channels.*;
 import java.util.*;
 
 import src.Message;
+import src.com.peer.Peer;
 
 public class Server implements Runnable{
-	
-	private int port;
 
-	public Server(int port) {
+	private int port;
+	private static Peer currPeer;
+
+	public Server(Peer currPeer, int port) {
+		System.out.println("Making new server for this peer");
+		this.currPeer = currPeer;
 		this.port = port;
 	}
 
 	public void run() {
 		ServerSocket listener = null;
-		//initialize socket server
+		// Initializes listening (server) socket
 		try {
 			listener = new ServerSocket(port);
 			System.out.println("The server is running at port: " + port);
@@ -69,14 +73,36 @@ public class Server implements Runnable{
 				try{
 					while(true)
 					{
-						//receive the message sent from the client
-						message = new Message((byte[]) in.readObject());
-						//TODO: Log message received
-						//TODO: response logic
+						// Raw message received from incoming client socket
+						byte[] byteArray = (byte[]) in.readObject();
+
+						// Receives handshake
+						if (compareBytesToString(byteArray, "P2PFILESHARINGPROJ", 18)) {
+							String peerID = new String(byteArray, byteArray.length - 4, 4);
+							System.out.println("Received handshake from: " + peerID);
+
+							// Establishes client socket to peer
+							if (!currPeer.peerHM.containsKey(peerID)) {
+								String[] peerInfo = getPeerInfo(peerID);
+								currPeer.establishConnection(peerID, peerInfo[0], Integer.parseInt(peerInfo[1]));
+							} else {
+								System.out.println("Already connected to this peer");
+							}
+						}
+						// All other regular messages parsed here
+						else {
+							message = new Message(byteArray);
+						}
+						// (REMOVE LATER) Displays peers currently connected to
+						System.out.println("Current Peer List");
+						for(String peerID : currPeer.peerHM.keySet()) {
+							System.out.println(peerID);
+						}
 					}
-				}
-				catch(ClassNotFoundException classnot){
+				} catch(ClassNotFoundException classnot){
 					System.err.println("Data received in unknown format");
+				} catch (EOFException eofException) {
+					System.out.println("Disconnected with Client " + no);
 				} catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -97,6 +123,13 @@ public class Server implements Runnable{
 			}
 		}
 
+		// Compares raw byte streams to a string
+		private static boolean compareBytesToString(byte[] byteArray, String targetString, int length) {
+			if (byteArray.length < length) return false;
+			String byteArraySubstring = new String(byteArray, 0, length);
+			return byteArraySubstring.equals(targetString);
+		}
+
 		//send a message to the output stream
 		public void sendMessage(String msg)
 		{
@@ -108,6 +141,29 @@ public class Server implements Runnable{
 			catch(IOException ioException){
 				ioException.printStackTrace();
 			}
+		}
+
+		// Extracts peer info from PeerInfo.cfg for a specific handshake
+		public String[] getPeerInfo(String peerID) {
+			String[] peerInfo = new String[3];
+			try {
+				File cfg = new File("src/PeerInfo.cfg");
+				Scanner scanner = new Scanner(cfg);
+				while (scanner.hasNextLine()) {
+					String line = scanner.nextLine();
+					String[] parts = line.split("\\s+");
+					if (parts[0].equals(peerID)) {
+						peerInfo[0] = parts[1];
+						peerInfo[1] = parts[2];
+						peerInfo[2] = parts[3];
+						break;
+					}
+				}
+				scanner.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			return peerInfo;
 		}
 	}
 }

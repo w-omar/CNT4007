@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Random;
 import java.io.File;
@@ -13,7 +14,6 @@ import src.com.client.Client;
 
 public class Peer {
     //to be determined over course of runtime
-    private ArrayList<String> peersList;
     private ArrayList<String> interestedPeers;
     private ArrayList<String> preferredNeighbors;
     private String optimisticNeighbor;
@@ -37,6 +37,9 @@ public class Peer {
 
     private ArrayList<Boolean> bitField;
 
+    // Tracks the peers who are connected and their respective client sockets
+    public HashMap<String, Client> peerHM = new HashMap<>();
+
     public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException {
         this.ID = peerId;
         this.portNumber = port;
@@ -46,9 +49,9 @@ public class Peer {
         init();
     }
 
-    //starts server and client
+    // Initiates listening server
     private void init(){
-        Server server = new Server(portNumber);
+        Server server = new Server(this, portNumber);
         Thread thread = new Thread(server);
         thread.start();
     }
@@ -96,14 +99,19 @@ public class Peer {
     }
 
     //connect to peer
-    public void establishConnection(String peerID, String hostName, int port) throws IOException {
-        //TODO update peersList
-        peersList.add(peerID);
+    public void establishConnection(String peerID, String hostName, int port) throws IOException, InterruptedException {
 
-        //TODO connect to peer
+        // Opens new socket to the specified peer
         Client client = new Client(hostName, port);
         Thread thread = new Thread(client);
         thread.start();
+
+        // Registers peer in HM and initiates handshake
+        peerHM.put(peerID, client);
+
+        // Keeps retrying until message is actually sent
+        // ** Implement a timeout function for safety **
+        while(!client.sendMessage(handshakeMsg()));
     }
 
     /*  peer A calculates the downloading rate from each of its neighbors,
@@ -143,5 +151,16 @@ public class Peer {
             if (!bitField.get(i)) return false;
         }
         return true;
+    }
+
+    // Returns raw handshake message for current peer
+    public byte[] handshakeMsg() {
+        byte[] byteArray = new byte[32];
+        String initialString = "P2PFILESHARINGPROJ";
+        System.arraycopy(initialString.getBytes(), 0, byteArray, 0, Math.min(initialString.length(), 18));
+        for (int i = 18; i < 28; i++) { byteArray[i] = 0; }
+        String currPeerID = this.ID;
+        System.arraycopy(currPeerID.getBytes(), 0, byteArray, 28, Math.min(currPeerID.length(), 4));
+        return byteArray;
     }
 }

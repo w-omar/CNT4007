@@ -36,32 +36,18 @@ public class Client implements Runnable {
 
             //get Input from standard input
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-            while(true)
-            {
-                System.out.print("Hello, please input a sentence: ");
-                //read a sentence from the standard input
-                message = bufferedReader.readLine();
-                //Send the sentence to the server
-                sendMessage(message);
-                //Receive the upperCase sentence from the server
-                MESSAGE = (String)in.readObject();
-                //show the message to the user
-                System.out.println("Receive message: " + MESSAGE);
-            }
-        }
-        catch (ConnectException e) {
+
+            // Keeps thread from closing
+            while(true);
+        } catch (ConnectException e) {
             System.err.println("Connection refused. You need to initiate a server first.");
-        }
-        catch ( ClassNotFoundException e ) {
-            System.err.println("Class not found");
-        }
-        catch(UnknownHostException unknownHost){
+        } catch (UnknownHostException unknownHost) {
             System.err.println("You are trying to connect to an unknown host!");
-        }
-        catch(IOException ioException){
+        } catch (IOException ioException) {
             ioException.printStackTrace();
-        }
-        finally{
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             //Close connections
             try{
                 in.close();
@@ -73,21 +59,25 @@ public class Client implements Runnable {
             }
         }
     }
-    //send a message to the output stream
-    void sendMessage(String msg)
-    {
+    // Sends a message via client socket output stream
+    public boolean sendMessage(byte[] msg) {
         try{
-            //stream write the message
+            // Message can't send if out stream isn't initialized
+            if (this.out == null) return false;
+            // Stream write the message
             out.writeObject(msg);
             out.flush();
-        }
-        catch(IOException ioException){
+            // (REMOVE LATER) prints message sent
+            String messageStr = new String(msg);
+            System.out.println("Sent this message: " + messageStr);
+        } catch(IOException ioException) {
             ioException.printStackTrace();
         }
+        return true;
     }
+
     //main method
-    public static void main(String args[])
-    {
+    public static void main(String args[]) throws FileNotFoundException {
         Client client = new Client("localhost", 8000);
         client.run();
     }
