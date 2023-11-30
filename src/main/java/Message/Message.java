@@ -9,14 +9,18 @@ import exceptions.InvalidMessageByteStreamException;
 public class Message {
 
     public enum Type {
-        CHOKE,
-        UNCHOKE,
-        INTERESTED,
-        NOTINTERESTED,
-        HAVE,
-        BITFIELD,
-        REQUEST,
-        PIECE
+        CHOKE(0x00),
+        UNCHOKE(0x01),
+        INTERESTED(0x02),
+        NOTINTERESTED(0x03),
+        HAVE(0x04),
+        BITFIELD(0x05),
+        REQUEST(0x06),
+        PIECE(0x07);
+
+        public int hex;
+
+        Type(int hex) { this.hex = hex; }
     }
 
     private int messageLength;
@@ -71,6 +75,55 @@ public class Message {
         }
     }
 
+    // Msg for choke, unchoke, interested, and not interested
+    public static byte[] buildMsg(Type type) {
+        return buildPrefix(type, 1);
+    }
+
+    // Msg for have, request, and piece
+    public static byte[] buildMsg(Type type, int index) {
+        byte[] prefix = buildPrefix(type, 5);
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.putInt(index);
+        byte[] payload = bb.array();
+        byte[] retMsg = new byte[9];
+        System.arraycopy(prefix, 0, retMsg, 0, 5);
+        System.arraycopy(payload, 0, retMsg, 5, 4);
+        return retMsg;
+    }
+
+    // Msg for bitfield
+    public static byte[] buildMsg(Type type, boolean[] bitfield) {
+        int length = bitfield.length;
+        int hexArrLen = (int) Math.ceil((double)length/8.0);
+        byte[] hexArray = new byte[hexArrLen];
+
+        for (int i = 0; i < length; i += 8) {
+            String binStr = "";
+            for (int j = i; j < i+8; j++) {
+                if(j > length - 1 || !bitfield[j]) {
+                    binStr += "0";
+                } else binStr += "1";
+            }
+            System.out.println("Adding: " + binStr);
+            int intValue = Integer.parseInt(binStr, 2);
+            hexArray[i/8] = (byte) intValue;
+        }
+
+        byte[] retMsg = new byte[5+hexArrLen];
+        byte[] prefix = buildPrefix(type, hexArrLen + 1);
+        System.arraycopy(prefix, 0, retMsg, 0, 5);
+        System.arraycopy(hexArray, 0, retMsg, 5, hexArrLen);
+        return retMsg;
+    }
+
+    private static byte[] buildPrefix(Type type, int length) {
+        ByteBuffer bb = ByteBuffer.allocate(5);
+        bb.putInt(length);
+        bb.put((byte) type.hex);
+        return bb.array();
+    }
+
     public int getMessageLength() {
         return this.messageLength;
     }
@@ -103,7 +156,17 @@ public class Message {
         for (byte i : myMessage.payload){
             payload += (char) i;
         }
-
         System.out.println("Message.Message Payload:  " + payload);
+
+        // Test bitfield message builder
+        boolean[] bitfield = {
+                true,true,true,true,true,true,true,true,
+                false,false,false,true,false,false,false,false
+        };
+        byte[] message = buildMsg(Type.BITFIELD, bitfield);
+        for(int i = 0; i < message.length; i++) {
+            String hexValue = String.format("%02X", message[i]);
+            System.out.print(hexValue + " ");
+        }
     }
 }
