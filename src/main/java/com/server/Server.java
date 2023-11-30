@@ -6,8 +6,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import src.Message;
-import src.com.peer.Peer;
+import Message.Message;
+import com.peer.Peer;
 
 public class Server implements Runnable{
 
@@ -147,7 +147,7 @@ public class Server implements Runnable{
 		public String[] getPeerInfo(String peerID) {
 			String[] peerInfo = new String[3];
 			try {
-				File cfg = new File("src/PeerInfo.cfg");
+				File cfg = new File("PeerInfo.cfg");
 				Scanner scanner = new Scanner(cfg);
 				while (scanner.hasNextLine()) {
 					String line = scanner.nextLine();

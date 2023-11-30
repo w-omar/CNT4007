@@ -1,8 +1,8 @@
-package src.com.peer;
+package com.peer;
 
-import src.Logs;
-import src.com.client.Client;
-import src.com.server.Server;
+import Logs.Logs;
+import com.client.Client;
+import com.server.Server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -68,7 +68,7 @@ public class Peer {
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
         try {
-            File cfg = new File("src/Common.cfg");
+            File cfg = new File("Common.cfg");
             Scanner scanner = new Scanner(cfg);
 
             while (scanner.hasNextLine()) {
