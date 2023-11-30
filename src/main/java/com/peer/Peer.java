@@ -6,6 +6,7 @@ import com.server.Server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.Math;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,7 +92,7 @@ public class Peer {
         this.fileName = cfgVars.get(3);
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
-        this.pieceCount = fileSize / pieceSize;
+        this.pieceCount = (int) Math.ceil(fileSize / pieceSize);
     }
     //writes to log
 

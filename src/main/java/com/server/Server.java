@@ -8,6 +8,7 @@ import java.util.*;
 
 import Message.Message;
 import com.peer.Peer;
+import Logs.Logs;
 
 public class Server implements Runnable{
 
@@ -100,6 +101,28 @@ public class Server implements Runnable{
 							// The peer ID for the incoming message
 							String peerID = idHM.get(uniqueIdent);
 							message = new Message(byteArray);
+
+							Logs log = new Logs();
+
+							//TODO: Response Logic
+							switch (message.getType()) {
+								case CHOKE:
+									break;
+								case UNCHOKE:
+									break;
+								case INTERESTED:
+									break;
+								case NOTINTERESTED:
+									break;
+								case HAVE:
+									break;
+								case BITFIELD:
+									break;
+								case REQUEST:
+									break;
+								case PIECE:
+									break;
+							}
 						}
 						// (REMOVE LATER) Displays peers currently connected to
 						System.out.println("Current Peer List");
