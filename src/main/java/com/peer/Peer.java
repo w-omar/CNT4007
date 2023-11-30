@@ -1,20 +1,21 @@
-package src.com.peer;
+package com.peer;
 
-import src.Logs;
-import src.com.client.Client;
-import src.com.server.Server;
+import Logs.Logs;
+import com.client.Client;
+import com.server.Server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Peer {
     //to be determined over course of runtime
-    private ArrayList<String> peersList = new ArrayList<>();
     private ArrayList<String> interestedPeers;
     private ArrayList<String> preferredNeighbors;
     private String optimisticNeighbor;
@@ -38,6 +39,8 @@ public class Peer {
 
     private ArrayList<Boolean> bitField;
 
+    // Tracks the peers who are connected and their respective client sockets
+    public HashMap<String, Client> peerHM = new HashMap<>();
     private Map<String, Integer> piecesDownloaded;
 
 
@@ -50,9 +53,9 @@ public class Peer {
         init();
     }
 
-    //starts server and client
+    // Initiates listening server
     private void init(){
-        Server server = new Server(portNumber);
+        Server server = new Server(this, portNumber);
         Thread thread = new Thread(server);
         thread.start();
     }
@@ -65,7 +68,7 @@ public class Peer {
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
         try {
-            File cfg = new File("src/Common.cfg");
+            File cfg = new File("Common.cfg");
             Scanner scanner = new Scanner(cfg);
 
             while (scanner.hasNextLine()) {
@@ -100,18 +103,23 @@ public class Peer {
     }
 
     //connect to peer
-    public void establishConnection(String peerID, String hostName, int port) throws IOException {
-        //TODO update peersList
-        peersList.add(peerID);
+    public void establishConnection(String peerID, String hostName, int port) throws IOException, InterruptedException {
 
-        //TODO connect to peer
+        // Opens new socket to the specified peer
         Client client = new Client(hostName, port);
         Thread thread = new Thread(client);
         thread.start();
 
+        // Registers peer in HM and initiates handshake
+        peerHM.put(peerID, client);
+
         Logs log = new Logs();
         //ID is peer1 and peerID is peer 2.
         log.TCPLog(ID, peerID);
+
+        // Keeps retrying until message is actually sent
+        // ** Implement a timeout function for safety **
+        while(!client.sendMessage(handshakeMsg()));
     }
 
     /*  peer A calculates the downloading rate from each of its neighbors,
@@ -227,23 +235,34 @@ public class Peer {
 
         return true;
     }
-//need a way to call this every interval and to determine if neighbor is not already unchoked
-private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers, ArrayList<Peer> preferredNeighbors) {
-    ArrayList<Peer> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
-    potentialOptimisticNeighbors.removeAll(preferredNeighbors);
 
-    if (!potentialOptimisticNeighbors.isEmpty()) {
-        Random rand = new Random();
-        int randomIndex = rand.nextInt(potentialOptimisticNeighbors.size());
-
-        Peer newOptimisticNeighbor = potentialOptimisticNeighbors.get(randomIndex);
-
-        // Log the change of optimistic unchoked neighbor
-        Logs log = new Logs();
-        log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor.ID);
-
-        optimisticNeighbor = newOptimisticNeighbor.ID;
+    // Returns raw handshake message for current peer
+    public byte[] handshakeMsg() {
+        byte[] byteArray = new byte[32];
+        String initialString = "P2PFILESHARINGPROJ";
+        System.arraycopy(initialString.getBytes(), 0, byteArray, 0, Math.min(initialString.length(), 18));
+        for (int i = 18; i < 28; i++) { byteArray[i] = 0; }
+        String currPeerID = this.ID;
+        System.arraycopy(currPeerID.getBytes(), 0, byteArray, 28, Math.min(currPeerID.length(), 4));
+        return byteArray;
     }
-}
 
+    //need a way to call this every interval and to determine if neighbor is not already unchoked
+    private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers, ArrayList<Peer> preferredNeighbors) {
+        ArrayList<Peer> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
+        potentialOptimisticNeighbors.removeAll(preferredNeighbors);
+
+        if (!potentialOptimisticNeighbors.isEmpty()) {
+            Random rand = new Random();
+            int randomIndex = rand.nextInt(potentialOptimisticNeighbors.size());
+
+            Peer newOptimisticNeighbor = potentialOptimisticNeighbors.get(randomIndex);
+
+            // Log the change of optimistic unchoked neighbor
+            Logs log = new Logs();
+            log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor.ID);
+
+            optimisticNeighbor = newOptimisticNeighbor.ID;
+        }
+    }
 }
