@@ -43,6 +43,7 @@ public class Peer {
     public HashMap<String, Client> peerHM = new HashMap<>();
     private Map<String, Integer> piecesDownloaded;
 
+    private int piecesLastIteration = 0;
 
     public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException {
         this.ID = peerId;
@@ -170,11 +171,10 @@ public class Peer {
     }
 
     // Calculate download rate for a peer
-    private double calculateDownloadRate(Peer peer) {//TODO
-        Random random = new Random();
-
-        int randomInt = random.nextInt();
-        return randomInt;
+    private double calculateDownloadRate(Peer peer) {
+        int downloaded = peer.piecesDownloaded.get(peer.ID) - peer.piecesLastIteration;
+        peer.piecesLastIteration = peer.piecesDownloaded.get(peer.ID);
+        return downloaded;
     }
 
     // Find the index of the peer with the highest download rate
@@ -219,8 +219,6 @@ public class Peer {
 
             return pieceInd;
         } else{
-            //reset piece counter to 0 for next download
-            piecesDownloaded.put(ID, 0);
             return -1;
         }
     }
