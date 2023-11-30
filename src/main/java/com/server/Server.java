@@ -13,6 +13,7 @@ public class Server implements Runnable{
 
 	private int port;
 	private static Peer currPeer;
+	private static HashMap<String, String> idHM = new HashMap<>();
 
 	public Server(Peer currPeer, int port) {
 		System.out.println("Making new server for this peer");
@@ -76,6 +77,10 @@ public class Server implements Runnable{
 						// Raw message received from incoming client socket
 						byte[] byteArray = (byte[]) in.readObject();
 
+						String uniqueIdent =
+								connection.getInetAddress().getCanonicalHostName() + ":" +
+								connection.getPort();
+
 						// Receives handshake
 						if (compareBytesToString(byteArray, "P2PFILESHARINGPROJ", 18)) {
 							String peerID = new String(byteArray, byteArray.length - 4, 4);
@@ -83,6 +88,7 @@ public class Server implements Runnable{
 
 							// Establishes client socket to peer
 							if (!currPeer.peerHM.containsKey(peerID)) {
+								idHM.put(uniqueIdent, peerID);
 								String[] peerInfo = getPeerInfo(peerID);
 								currPeer.establishConnection(peerID, peerInfo[0], Integer.parseInt(peerInfo[1]));
 							} else {
@@ -91,6 +97,8 @@ public class Server implements Runnable{
 						}
 						// All other regular messages parsed here
 						else {
+							// The peer ID for the incoming message
+							String peerID = idHM.get(uniqueIdent);
 							message = new Message(byteArray);
 						}
 						// (REMOVE LATER) Displays peers currently connected to
