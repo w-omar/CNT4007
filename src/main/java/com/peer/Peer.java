@@ -3,6 +3,7 @@ package com.peer;
 import Logs.Logs;
 import com.client.Client;
 import com.server.Server;
+import com.peer.PeerData;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,10 +39,10 @@ public class Peer {
     //Each peer should write its log into the log file ‘log_peer_[peerID].log’ at the working directory
     private String logFileName;
 
-    private ArrayList<Boolean> bitField;
+    public boolean[] bitfield;
 
     // Tracks the peers who are connected and their respective client sockets
-    public HashMap<String, Client> peerHM = new HashMap<>();
+    public HashMap<String, PeerData> peerHM = new HashMap<>();
     private Map<String, Integer> piecesDownloaded;
 
     private int piecesLastIteration = 0;
@@ -107,16 +108,17 @@ public class Peer {
         this.fileName = cfgVars.get(3);
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
-        this.pieceCount = (int) Math.ceil(fileSize / pieceSize);
+        this.pieceCount = (int) Math.ceil((double) fileSize / (double) pieceSize);
     }
     //writes to log
 
     //initializes bitfields
     public void initBitfield(){
-        bitField = new ArrayList<Boolean>();
+        boolean[] bfArr = new boolean[pieceCount];
         for (int i = 0; i < pieceCount; i++) {
-            bitField.add(hasFile);
+            bfArr[i] = hasFile;
         }
+        this.bitfield = bfArr;
     }
 
     //connect to peer
@@ -124,11 +126,13 @@ public class Peer {
 
         // Opens new socket to the specified peer
         Client client = new Client(hostName, port);
+        PeerData newPeer = new PeerData(client);
         Thread thread = new Thread(client);
         thread.start();
 
         // Registers peer in HM and initiates handshake
-        peerHM.put(peerID, client);
+        peerHM.put(peerID, newPeer);
+
 
         Logs log = new Logs();
         //ID is peer1 and peerID is peer 2.
@@ -208,12 +212,12 @@ public class Peer {
 
 
     // Selects random index of a piece that the peer needs from another peer
-    private int selectPiece(ArrayList<Boolean> peerBitField, String peer2ID) {
+    private int selectPiece(Boolean[] peerBitField, String peer2ID) {
         // Populates an array with all indices of valid pieces
         Logs log = new Logs();
         ArrayList<Integer> availableIndexes = new ArrayList<Integer>();
         for (int i = 0; i < pieceCount; i++) {
-            if (peerBitField.get(i) && !bitField.get(i)) {
+            if (peerBitField[i] && !bitfield[i]) {
                 availableIndexes.add(i);
             }
         }
@@ -241,8 +245,8 @@ public class Peer {
 
     // Checks if peer has all parts of a file
     private boolean hasCompleteFile() {
-        for (int i = 0; i < bitField.size(); i++) {
-            if (!bitField.get(i)) return false;
+        for (int i = 0; i < bitfield.length; i++) {
+            if (!bitfield[i]) return false;
         }
         Logs log = new Logs();
         log.completedDownloadLog(ID);
@@ -280,4 +284,6 @@ public class Peer {
         }
         return optimisticNeighbor;
     }
+
+    public boolean getHasFile() { return hasFile; }
 }

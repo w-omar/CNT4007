@@ -28,7 +28,6 @@ public class Client implements Runnable {
         try{
             //create a socket to connect to the server
             requestSocket = new Socket(servHostName, servPort);
-            System.out.println("Connected to " + servHostName + " in port " + servPort);
             //initialize inputStream and outputStream
             out = new ObjectOutputStream(requestSocket.getOutputStream());
             out.flush();
@@ -68,8 +67,12 @@ public class Client implements Runnable {
             out.writeObject(msg);
             out.flush();
             // (REMOVE LATER) prints message sent
-            String messageStr = new String(msg);
-            System.out.println("Sent this message: " + messageStr);
+            String hexMsg = "";
+            for(int i = 0; i < msg.length; i++) {
+                hexMsg += String.format("%02X", msg[i]) + " ";
+            }
+            System.out.println("Sent this message: " + hexMsg);
+
         } catch(IOException ioException) {
             ioException.printStackTrace();
         }
