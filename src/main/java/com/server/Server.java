@@ -128,8 +128,15 @@ public class Server implements Runnable{
 										currPeer.peerHM.get(peerID).cliSock.sendMessage(bitfieldMsg);
 									}
 									// Record incoming bitfield
-									currPeer.peerHM.get(peerID).bitfield =
-											Message.getBFFromMsg(message, currPeer.pieceCount);
+									boolean[] peerBF = Message.getBFFromMsg(message, currPeer.pieceCount);
+									currPeer.peerHM.get(peerID).bitfield = peerBF;
+
+									// Determines if interested in this new peer
+									if (currPeer.determineInterest(peerBF)) {
+										byte[] interestMsg = Message.buildMsg(Type.INTERESTED);
+										currPeer.peerHM.get(peerID).cliSock.sendMessage(interestMsg);
+									}
+
 									break;
 								case REQUEST:
 									break;
