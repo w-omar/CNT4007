@@ -80,7 +80,7 @@ public class Message {
         return buildPrefix(type, 1);
     }
 
-    // Msg for have, request, and piece
+    // Msg for have and request
     public static byte[] buildMsg(Type type, int index) {
         byte[] prefix = buildPrefix(type, 5);
         ByteBuffer bb = ByteBuffer.allocate(4);
@@ -92,6 +92,15 @@ public class Message {
         return retMsg;
     }
 
+    //Msg for piece
+    public static byte[] buildMsg(byte[] data) {
+        byte[] prefix = buildPrefix(Type.PIECE, data.length + 1);
+        byte[] retMsg = new byte[prefix.length + data.length];
+        System.arraycopy(prefix, 0, retMsg, 0, prefix.length);
+        System.arraycopy(data, 0, retMsg, prefix.length, data.length);
+
+        return retMsg;
+    }
     // Msg for bitfield
     public static byte[] buildMsg(Type type, boolean[] bitfield) {
         int length = bitfield.length;

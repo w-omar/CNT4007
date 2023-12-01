@@ -147,7 +147,7 @@ public class Server implements Runnable{
 									if (!currPeer.peerHM.get(peerID).handShook) {
 										currPeer.peerHM.get(peerID).handShook = true;
 										byte[] bitfieldMsg = Message.buildMsg(Type.BITFIELD, currPeer.bitfield);
-										currPeer.peerHM.get(peerID).cliSock.sendMessage(bitfieldMsg);
+										sendMessage(peerID, bitfieldMsg);
 									}
 									// Record incoming bitfield
 									boolean[] peerBF = Message.getBFFromMsg(message, currPeer.pieceCount);
@@ -161,7 +161,7 @@ public class Server implements Runnable{
 									}
 									break;
 								case REQUEST:
-									break;
+									requestHelper(peerID, message);
 								case PIECE:
 									break;
 							}
@@ -196,6 +196,22 @@ public class Server implements Runnable{
 			}
 		}
 
+		//logic to execute upon receipt of "request"
+		private void requestHelper(String requesterID, Message request){
+			//check if requester is unchoked, exits if not
+			if (!currPeer.getUnchokedNeighborIDs().contains(requesterID)) {
+				return;
+			}
+			//check if we have the piece, exits if we don't
+			int requestedPieceIndex = ByteBuffer.wrap(request.getPayload()).getInt();
+			if (!currPeer.hasPiece(requestedPieceIndex)) {
+				return;
+			}
+			//read data from our file
+			byte[] pieceMessage = Message.buildMsg(currPeer.getPiece(requestedPieceIndex));
+			//send the message to requester
+			sendMessage(requesterID, pieceMessage);
+		}
 		// Compares raw byte streams to a string
 		private static boolean compareBytesToString(byte[] byteArray, String targetString, int length) {
 			if (byteArray.length < length) return false;
@@ -204,16 +220,9 @@ public class Server implements Runnable{
 		}
 
 		//send a message to the output stream
-		public void sendMessage(String msg)
+		public void sendMessage(String peerID, byte[] msg)
 		{
-			try{
-				out.writeObject(msg);
-				out.flush();
-				System.out.println("Send message: " + msg + " to Client " + no);
-			}
-			catch(IOException ioException){
-				ioException.printStackTrace();
-			}
+			currPeer.peerHM.get(peerID).cliSock.sendMessage(msg);
 		}
 
 		// Extracts peer info from PeerInfo.cfg for a specific handshake
