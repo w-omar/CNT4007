@@ -18,8 +18,8 @@ import java.util.concurrent.*;
 
 public class Peer {
     //to be determined over course of runtime
-    public ArrayList<String> interestedPeers;
-    private ArrayList<String> preferredNeighbors;
+    public ArrayList<String> interestedPeers = new ArrayList<>();
+    private ArrayList<String> preferredNeighbors = new ArrayList<>();
     private String optimisticNeighbor;
 
     //determined by Config.cfg
