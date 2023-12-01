@@ -62,11 +62,11 @@ public class StartRemotePeers {
          * folder.
          */
 
-        peerList.add(new PeerInfo("1", "lin114-06.cise.ufl.edu"));/*
+        peerList.add(new PeerInfo("1", "lin114-06.cise.ufl.edu"));
         peerList.add(new PeerInfo("2", "lin114-08.cise.ufl.edu"));
         peerList.add(new PeerInfo("3", "lin114-09.cise.ufl.edu"));
         peerList.add(new PeerInfo("4", "lin114-04.cise.ufl.edu"));
-        peerList.add(new PeerInfo("5", "lin114-05.cise.ufl.edu"));*/
+        peerList.add(new PeerInfo("5", "lin114-05.cise.ufl.edu"));
         //start ssh client
         SshClient client = null;
         try {
@@ -84,24 +84,21 @@ public class StartRemotePeers {
                     .getSession()) {
                 session.auth().verify(Duration.ofSeconds(10));
                 System.out.println("Session to peer# " + remotePeer.getPeerID() + " at " + remotePeer.getHostName());
-                String command = "java -cp target/classes peerProcess 10";
-                try (OutputStream stdout = new ByteArrayOutputStream();
-                     OutputStream stderr = new ByteArrayOutputStream();
+                String command = "cd CNT4007; java -cp target/classes peerProcess 10";
+                try (OutputStream mergedOutput = new ByteArrayOutputStream();
                      ClientChannel channel = session.createExecChannel(command)) {
-                    channel.setOut(stdout);
-                    channel.setErr(stderr);
+                    channel.setOut(mergedOutput);
+                    channel.setRedirectErrorStream(true);
                     channel.open().verify(Duration.ofSeconds(10));
                     // Wait (forever) for the channel to close - signalling command finished
-                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), 0L);
-                    String outputString = stderr.toString();
+                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), 10000);
+                    String outputString = mergedOutput.toString();
                     System.out.println(outputString);
                 }
             } catch (Exception e) {
                 System.out.println("Failed to connect to peer#" + remotePeer.getPeerID());
                 System.out.println(e.toString());
             }
-
-
         }
     }
 }
