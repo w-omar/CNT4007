@@ -197,7 +197,7 @@ public class Server implements Runnable{
 		}
 
 		//logic to execute upon receipt of "request"
-		private void requestHelper(String requesterID, Message request){
+		private void requestHelper(String requesterID, Message request) throws IOException {
 			//check if requester is unchoked, exits if not
 			if (!currPeer.getUnchokedNeighborIDs().contains(requesterID)) {
 				return;
