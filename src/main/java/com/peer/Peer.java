@@ -178,9 +178,22 @@ public class Peer {
             return;
         }
 
-        HashMap<String, Double> downloadRatesHM = new HashMap<>();
+        // Selects random interested peers if it has full file
+        if (hasCompleteFile()) {
+            ArrayList<String> tempPeers = interestedPeers;
+            ArrayList<String> selectedPeers = new ArrayList<>();
+            for (int i = 0; i < numberOfPreferredNeighbors; i++) {
+                Random rand = new Random();
+                int randIdx = rand.nextInt(tempPeers.size());
+                selectedPeers.add(tempPeers.get(randIdx));
+                tempPeers.remove(randIdx);
+            }
+            preferredNeighbors = selectedPeers;
+            return;
+        }
 
-        // Calculate download rates for each interested peer
+        // All other cases: Calculate download rates for each interested peer
+        HashMap<String, Double> downloadRatesHM = new HashMap<>();
         for (String peer : interestedPeers) {
             double downloadRate = peerHM.get(peer).calculateDownloadRate();
             downloadRatesHM.put(peer, downloadRate);
@@ -195,6 +208,14 @@ public class Peer {
                 if (entry.getValue() > maxRate) {
                     maxID = entry.getKey();
                     maxRate = entry.getValue();
+                }
+                // If same value, randomly break tie
+                else if (entry.getValue() == maxRate) {
+                    Random rand = new Random();
+                    if (rand.nextInt(2) == 1) {
+                        maxID = entry.getKey();
+                        maxRate = entry.getValue();
+                    }
                 }
             }
             preferredNeighborsArr.add(maxID);
@@ -239,12 +260,13 @@ public class Peer {
 
     // Checks if peer has all parts of a file
     private boolean hasCompleteFile() {
+        if (hasFile) return true;
         for (boolean b : bitfield) {
             if (!b) return false;
         }
+        hasFile = true;
         Logs log = new Logs();
         log.completedDownloadLog(ID);
-
         return true;
     }
 
