@@ -49,10 +49,10 @@ public class StartRemotePeers {
 
         ArrayList<PeerInfo> peerList = new ArrayList<>();
         File sshConfig = new File("remoteLogin.cfg");
-        Scanner scanner = new Scanner(sshConfig);
+        Scanner sshScanner = new Scanner(sshConfig);
         ArrayList<String> sshConfigLines = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            sshConfigLines.add(scanner.nextLine());
+        while (sshScanner.hasNextLine()) {
+            sshConfigLines.add(sshScanner.nextLine());
         }
         String ciseUser = sshConfigLines.get(0); // change with your CISE username
         /**
@@ -61,12 +61,21 @@ public class StartRemotePeers {
          * peers which have the file initially have it under the 'peer_[peerID]'
          * folder.
          */
+        //read PeerInfo.cfg
+        ArrayList<String[]> peers = new ArrayList<>();
+        try {
+            File cfg = new File("PeerInfo.cfg");
+            Scanner scanner = new Scanner(cfg);
 
-        peerList.add(new PeerInfo("1", "lin114-06.cise.ufl.edu"));
-        peerList.add(new PeerInfo("2", "lin114-08.cise.ufl.edu"));
-        peerList.add(new PeerInfo("3", "lin114-09.cise.ufl.edu"));
-        peerList.add(new PeerInfo("4", "lin114-04.cise.ufl.edu"));
-        peerList.add(new PeerInfo("5", "lin114-05.cise.ufl.edu"));
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split("\\s+");
+                peerList.add(new PeerInfo(parts[0], parts[1]));
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         //start ssh client
         SshClient client = null;
         try {
