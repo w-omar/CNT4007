@@ -13,13 +13,13 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Map;
 import java.util.Random;
-import java.util.Scanner;
+import java.util.concurrent.*;
 
 public class Peer {
     //to be determined over course of runtime
-    private ArrayList<String> interestedPeers;
-    private ArrayList<String> preferredNeighbors;
-    private String optimisticNeighbor;
+    private ArrayList<Peer> interestedPeers;
+    private ArrayList<Peer> preferredNeighbors;
+    private Peer optimisticNeighbor;
 
     //determined by Config.cfg
     private int numberOfPreferredNeighbors;
@@ -57,9 +57,24 @@ public class Peer {
 
     // Initiates listening server
     private void init(){
+        //Start server
         Server server = new Server(this, portNumber);
         Thread thread = new Thread(server);
         thread.start();
+
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+
+        Runnable choosePreferredNeighbors = () -> {
+            this.preferredNeighbors = determinePreferredNeighbors();
+        };
+        Runnable chooseOptimisticUnchokedNeighbor = () -> {
+            optimisticNeighbor = changeOptimisticNeighbor();
+        };
+
+        scheduler.scheduleAtFixedRate(choosePreferredNeighbors, 0, unchokingInterval, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(chooseOptimisticUnchokedNeighbor, 0, optimisticUnchokingInterval, TimeUnit.SECONDS);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(scheduler::shutdown));
     }
 
     public int getPortNumber() {
@@ -135,7 +150,7 @@ public class Peer {
         unchoked neighbor. To choke those neighbors, peer A sends ‘choke’ messages to them
         and stop sending pieces
     */
-    private ArrayList<Peer> determinePreferredNeighbors(ArrayList<Peer> interestedPeers) {
+    private ArrayList<Peer> determinePreferredNeighbors() {
         if (interestedPeers.size() <= numberOfPreferredNeighbors){
             return interestedPeers;
         }
@@ -247,7 +262,7 @@ public class Peer {
     }
 
     //need a way to call this every interval and to determine if neighbor is not already unchoked
-    private void changeOptimisticNeighbor(ArrayList<Peer> interestedPeers, ArrayList<Peer> preferredNeighbors) {
+    private Peer changeOptimisticNeighbor() {
         ArrayList<Peer> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
         potentialOptimisticNeighbors.removeAll(preferredNeighbors);
 
@@ -261,7 +276,8 @@ public class Peer {
             Logs log = new Logs();
             log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor.ID);
 
-            optimisticNeighbor = newOptimisticNeighbor.ID;
+            return newOptimisticNeighbor;
         }
+        return optimisticNeighbor;
     }
 }
