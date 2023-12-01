@@ -28,7 +28,7 @@ public class Peer {
     private int optimisticUnchokingInterval;
     private int fileSize;
     private int pieceSize;
-    private int pieceCount;
+    public int pieceCount;
     private String fileName;
 
     //dictated by peerProcess

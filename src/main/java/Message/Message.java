@@ -123,6 +123,22 @@ public class Message {
         return bb.array();
     }
 
+    // Extracts bitfield from BITFIELD message. (Only use on bitfield messages)
+    public static boolean[] getBFFromMsg(Message bfMsg, int pieceCount) {
+        if (bfMsg.type != Type.BITFIELD) return null;
+        boolean[] retBF = new boolean[pieceCount];
+        int index = 0;
+        for (int i = 0; i < bfMsg.payloadLength; i++) {
+            String binStr = Integer.toBinaryString((bfMsg.payload[i] & 0xFF) + 0x100).substring(1);
+            for(int j = 0; j < binStr.length(); j++) {
+                if (index > pieceCount-1) return retBF;
+                retBF[index] = (binStr.charAt(j) == '1');
+                index++;
+            }
+        }
+        return retBF;
+    }
+
     public int getMessageLength() {
         return this.messageLength;
     }
@@ -168,5 +184,18 @@ public class Message {
             System.out.print(hexValue + " ");
         }
         System.out.println("\n");
+
+        //Test getBFFromMsg
+        int pieceCount = 23;
+        byte[] bfMsgArr = {0x00, 0x00, 0x00, 0x04, 0x05, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
+        Message bfMsg = new Message(bfMsgArr);
+        boolean[] tempBF = new boolean[pieceCount];
+        tempBF = getBFFromMsg(bfMsg, pieceCount);
+        for(int i = 0; i < tempBF.length; i++) {
+            if(tempBF[i]) System.out.print("1");
+            else System.out.print("0");
+        }
+        System.out.println("\n");
+        System.out.println("Size of bitfield: " + tempBF.length);
     }
 }

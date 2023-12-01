@@ -10,6 +10,7 @@ import Message.Message;
 import Message.Message.Type;
 import com.peer.Peer;
 import Logs.Logs;
+import jdk.swing.interop.SwingInterOpUtils;
 
 public class Server implements Runnable{
 
@@ -84,7 +85,7 @@ public class Server implements Runnable{
 						// Receives handshake
 						if (compareBytesToString(byteArray, "P2PFILESHARINGPROJ", 18)) {
 							String peerID = new String(byteArray, byteArray.length - 4, 4);
-							System.out.println("Received handshake from peer " + peerID);
+							System.out.println("Received HANDSHAKE from " + peerID);
 
 							// Establishes client socket to peer
 							if (!currPeer.peerHM.containsKey(peerID)) {
@@ -104,7 +105,7 @@ public class Server implements Runnable{
 							// The peer ID for the incoming message
 							String peerID = idHM.get(uniqueIdent);
 							message = new Message(byteArray);
-
+							System.out.println("Received " + message.getType() + " message from " + peerID);
 							Logs log = new Logs();
 
 							//TODO: Response Logic
@@ -125,11 +126,10 @@ public class Server implements Runnable{
 										currPeer.peerHM.get(peerID).handShook = true;
 										byte[] bitfieldMsg = Message.buildMsg(Type.BITFIELD, currPeer.bitfield);
 										currPeer.peerHM.get(peerID).cliSock.sendMessage(bitfieldMsg);
-									} else {
-										// Set currPeet.peerHM.get(peerID).bitfield to the incoming bitfield
-										// Note: Need to find a way to create convert byte[] into a boolean[]
-										// bc the incoming bitfield is stored as hex in a byte[]
 									}
+									// Record incoming bitfield
+									currPeer.peerHM.get(peerID).bitfield =
+											Message.getBFFromMsg(message, currPeer.pieceCount);
 									break;
 								case REQUEST:
 									break;
