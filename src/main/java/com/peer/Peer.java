@@ -75,7 +75,29 @@ public class Peer {
     public int getPortNumber() {
         return portNumber;
     }
+    //returns bitfield[index] or false if index is OOB
+    public boolean hasPiece(int index){
+        if (index < 0 || index >= pieceCount)
+            return false;
+        return bitfield[index];
+    }
 
+    //get peerID's for all unchoked neighbors
+    public ArrayList<String> getUnchokedNeighborIDs(){
+        ArrayList<String> unchokedNeighborIDs = new ArrayList<>();
+        for ( String peerID : preferredNeighbors )
+            unchokedNeighborIDs.add(peerID);
+        unchokedNeighborIDs.add(optimisticNeighbor);
+
+        return unchokedNeighborIDs;
+    }
+    //gets bytes from FD corresponding to passed index
+    public byte[] getPiece(int index){
+        if ( index < 0 || index >= pieceCount) {
+            throw new IndexOutOfBoundsException("Requested piece index out of bounds");
+        }
+        int byteOffset = index * pieceSize;
+    }
     //read config file helper
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
