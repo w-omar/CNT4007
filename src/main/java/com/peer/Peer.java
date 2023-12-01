@@ -10,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.lang.Math;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -26,7 +28,7 @@ public class Peer {
     private int fileSize;
     private int pieceSize;
     public int pieceCount;
-    private String filePath;
+    private Path filePath;
     private final RandomAccessFile theFile;
     //dictated by peerProcess
     private final String ID;
@@ -69,7 +71,7 @@ public class Peer {
     //opens file to read/write to
     private RandomAccessFile openP2PFile() throws IOException {
         RandomAccessFile theFile = null;
-        theFile = new RandomAccessFile(filePath, "rw");
+        theFile = new RandomAccessFile(filePath.toFile(), "rw");
         theFile.setLength((long) pieceCount * pieceSize);
         return theFile;
     }
@@ -123,7 +125,7 @@ public class Peer {
         this.numberOfPreferredNeighbors = Integer.parseInt(cfgVars.get(0));
         this.unchokingInterval = Integer.parseInt(cfgVars.get(1));
         this.optimisticUnchokingInterval = Integer.parseInt(cfgVars.get(2));
-        this.filePath = "peer_" + this.ID + "\\" + cfgVars.get(3);
+        this.filePath = Paths.get("peer_" + this.ID, cfgVars.get(3));
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
         this.pieceCount = (int) Math.ceil((double) fileSize / (double) pieceSize);
