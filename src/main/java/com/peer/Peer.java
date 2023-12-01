@@ -94,7 +94,7 @@ public class Peer {
 
                 if (parts.length == 2) {
                     cfgVars.add(parts[1]);
-                    System.out.println(parts[1]);
+                    //System.out.println(parts[1]);
                 }
             }
             scanner.close();

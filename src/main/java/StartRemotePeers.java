@@ -84,7 +84,7 @@ public class StartRemotePeers {
                     .getSession()) {
                 session.auth().verify(Duration.ofSeconds(10));
                 System.out.println("Session to peer# " + remotePeer.getPeerID() + " at " + remotePeer.getHostName());
-                String command = "cd CNT4007; java -cp target/classes peerProcess 10";
+                String command = "cd CNT4007; java -cp target/classes peerProcess " + remotePeer.getPeerID();
                 try (OutputStream mergedOutput = new ByteArrayOutputStream();
                      ClientChannel channel = session.createExecChannel(command)) {
                     channel.setOut(mergedOutput);
