@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.Math;
 import java.io.IOException;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -82,8 +83,34 @@ public class Peer {
     public int getPortNumber() {
         return portNumber;
     }
+    public String getID() {
+        return ID;
+    }
+    //returns array of unchoked peerID's
+    public ArrayList<String> getUnchokedNeighborIDs(){
+        ArrayList<String> unchokedNeighborIDs = new ArrayList<>();
+        for( Peer peer : preferredNeighbors ) {
+            unchokedNeighborIDs.add(peer.getID());
+        }
+        unchokedNeighborIDs.add(optimisticNeighbor.getID());
 
+        return unchokedNeighborIDs;
+    }
+    //returns value at bitfield[index] or false if index is invalid
     //read config file helper
+    public boolean hasPiece(int index){
+        if (index >= 0 && index < pieceCount)
+            return bitfield[index];
+        return false;
+    }
+    //reads piece at given index from the fd
+    public byte[] getPiece(int index) {
+        if (index >= pieceCount || index < 0)
+            throw new RuntimeException("Piece index is out of bounds");
+        int byteOffset = index * pieceSize;
+        byte[] piece = null; //TODO: read pieceSize bytes from our fd
+        return piece;
+    }
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
         try {
@@ -210,7 +237,6 @@ public class Peer {
         }
         return maxIndex;
     }
-
 
     // Selects random index of a piece that the peer needs from another peer
     private int selectPiece(Boolean[] peerBitField, String peer2ID) {
