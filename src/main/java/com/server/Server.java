@@ -7,6 +7,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import Message.Message;
+import Message.Message.Type;
 import com.peer.Peer;
 import Logs.Logs;
 
@@ -17,7 +18,6 @@ public class Server implements Runnable{
 	private static HashMap<String, String> idHM = new HashMap<>();
 
 	public Server(Peer currPeer, int port) {
-		System.out.println("Making new server for this peer");
 		this.currPeer = currPeer;
 		this.port = port;
 	}
@@ -35,7 +35,6 @@ public class Server implements Runnable{
 		try {
 			while (true) {
 				new Handler(listener.accept(), clientNum).start();
-				System.out.println("Client " + clientNum + " is connected!");
 				clientNum++;
 			}
 		} catch (IOException e) {
@@ -85,7 +84,7 @@ public class Server implements Runnable{
 						// Receives handshake
 						if (compareBytesToString(byteArray, "P2PFILESHARINGPROJ", 18)) {
 							String peerID = new String(byteArray, byteArray.length - 4, 4);
-							System.out.println("Received handshake from: " + peerID);
+							System.out.println("Received handshake from peer " + peerID);
 
 							// Establishes client socket to peer
 							if (!currPeer.peerHM.containsKey(peerID)) {
@@ -93,7 +92,11 @@ public class Server implements Runnable{
 								String[] peerInfo = getPeerInfo(peerID);
 								currPeer.establishConnection(peerID, peerInfo[0], Integer.parseInt(peerInfo[1]));
 							} else {
-								System.out.println("Already connected to this peer");
+								// The return handshake has been received, can now send bitfield
+								idHM.put(uniqueIdent, peerID);
+								currPeer.peerHM.get(peerID).handShook = true;
+								byte[] bitfieldMsg = Message.buildMsg(Type.BITFIELD, currPeer.bitfield);
+								currPeer.peerHM.get(peerID).cliSock.sendMessage(bitfieldMsg);
 							}
 						}
 						// All other regular messages parsed here
@@ -117,6 +120,16 @@ public class Server implements Runnable{
 								case HAVE:
 									break;
 								case BITFIELD:
+									// Hasn't sent own bitfield yet
+									if (!currPeer.peerHM.get(peerID).handShook) {
+										currPeer.peerHM.get(peerID).handShook = true;
+										byte[] bitfieldMsg = Message.buildMsg(Type.BITFIELD, currPeer.bitfield);
+										currPeer.peerHM.get(peerID).cliSock.sendMessage(bitfieldMsg);
+									} else {
+										// Set currPeet.peerHM.get(peerID).bitfield to the incoming bitfield
+										// Note: Need to find a way to create convert byte[] into a boolean[]
+										// bc the incoming bitfield is stored as hex in a byte[]
+									}
 									break;
 								case REQUEST:
 									break;

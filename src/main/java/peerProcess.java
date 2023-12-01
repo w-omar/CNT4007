@@ -27,7 +27,7 @@ public class peerProcess {
 
                 if (parts[0].equals(peerID)) {
                     port = Integer.parseInt(parts[2]);
-                    hasFile = Boolean.parseBoolean(parts[3]);
+                    hasFile = parts[3].equals("1");
                     done = true;
                 } else {
                     peersToConnect.add(parts);

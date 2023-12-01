@@ -105,7 +105,6 @@ public class Message {
                     binStr += "0";
                 } else binStr += "1";
             }
-            System.out.println("Adding: " + binStr);
             int intValue = Integer.parseInt(binStr, 2);
             hexArray[i/8] = (byte) intValue;
         }
@@ -168,5 +167,6 @@ public class Message {
             String hexValue = String.format("%02X", message[i]);
             System.out.print(hexValue + " ");
         }
+        System.out.println("\n");
     }
 }
