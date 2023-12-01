@@ -6,6 +6,7 @@ public class PeerData {
     public Client cliSock;
     public String id;
     public boolean handShook = false;
+    public boolean interesting = false;
     public boolean[] bitfield;
 
     // For calculating preferred peers

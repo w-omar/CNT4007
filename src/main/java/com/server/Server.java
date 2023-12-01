@@ -115,10 +115,32 @@ public class Server implements Runnable{
 								case UNCHOKE:
 									break;
 								case INTERESTED:
+									if (!currPeer.interestedPeers.contains(peerID)) {
+										currPeer.interestedPeers.add(peerID);
+									}
 									break;
 								case NOTINTERESTED:
+									currPeer.interestedPeers.remove(peerID);
 									break;
 								case HAVE:
+									// Update local copy of this peer's bitfield
+									int pieceIdx = ByteBuffer.wrap(message.getPayload()).getInt();
+									currPeer.peerHM.get(peerID).bitfield[pieceIdx] = true;
+
+									// Determine if interested after receiving new bit
+									if (currPeer.determineInterest(currPeer.peerHM.get(peerID).bitfield)) {
+										// Only send interested msg if peer wasn't already interesting
+										if (!currPeer.peerHM.get(peerID).interesting) {
+											byte[] interestedMsg = Message.buildMsg(Type.INTERESTED);
+											currPeer.peerHM.get(peerID).cliSock.sendMessage(interestedMsg);
+											currPeer.peerHM.get(peerID).interesting = true;
+										}
+									} else {
+										// Not interested anymore, send not interested msg
+										byte[] notInterestedMsg = Message.buildMsg(Type.NOTINTERESTED);
+										currPeer.peerHM.get(peerID).cliSock.sendMessage(notInterestedMsg);
+										currPeer.peerHM.get(peerID).interesting = false;
+									}
 									break;
 								case BITFIELD:
 									// Hasn't sent own bitfield yet
@@ -134,9 +156,9 @@ public class Server implements Runnable{
 									// Determines if interested in this new peer
 									if (currPeer.determineInterest(peerBF)) {
 										byte[] interestMsg = Message.buildMsg(Type.INTERESTED);
+										currPeer.peerHM.get(peerID).interesting = true;
 										currPeer.peerHM.get(peerID).cliSock.sendMessage(interestMsg);
 									}
-
 									break;
 								case REQUEST:
 									break;
