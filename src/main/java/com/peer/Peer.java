@@ -7,13 +7,10 @@ import com.peer.PeerData;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
 import java.lang.Math;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class Peer {
@@ -29,26 +26,23 @@ public class Peer {
     private int fileSize;
     private int pieceSize;
     public int pieceCount;
-    private String fileName;
-
+    private String filePath;
+    private final RandomAccessFile theFile;
     //dictated by peerProcess
-    private String ID;
-    private int portNumber;
-    private boolean hasFile;
-
-    //Each peer should write its log into the log file ‘log_peer_[peerID].log’ at the working directory
-    private String logFileName;
-
+    private final String ID;
+    private final int portNumber;
+    private final boolean hasFile;
     public boolean[] bitfield;
 
     // Tracks the peers who are connected and their respective client sockets
     public HashMap<String, PeerData> peerHM = new HashMap<>();
 
-    public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException {
+    public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException, IOException {
         this.ID = peerId;
         this.portNumber = port;
         this.hasFile = hasFile;
         readCFG();
+        this.theFile = openP2PFile();
         initBitfield();
         init();
     }
@@ -72,10 +66,39 @@ public class Peer {
         Runtime.getRuntime().addShutdownHook(new Thread(scheduler::shutdown));
     }
 
+    //opens file to read/write to
+    private RandomAccessFile openP2PFile() throws IOException {
+        RandomAccessFile theFile = null;
+        theFile = new RandomAccessFile(filePath, "rw");
+        theFile.setLength((long) pieceCount * pieceSize);
+        return theFile;
+    }
     public int getPortNumber() {
         return portNumber;
     }
+    //returns bitfield[index] or false if index is OOB
+    public boolean hasPiece(int index){
+        if (index < 0 || index >= pieceCount)
+            return false;
+        return bitfield[index];
+    }
 
+    //get peerID's for all unchoked neighbors
+    public ArrayList<String> getUnchokedNeighborIDs(){
+        ArrayList<String> unchokedNeighborIDs = new ArrayList<>(preferredNeighbors);
+        unchokedNeighborIDs.add(optimisticNeighbor);
+        return unchokedNeighborIDs;
+    }
+    //gets bytes from FD corresponding to passed index
+    public byte[] getPiece(int index) throws IOException {
+        if ( index < 0 || index >= pieceCount) {
+            throw new IndexOutOfBoundsException("Requested piece index out of bounds");
+        }
+        int byteOffset = index * pieceSize;
+        byte[] piece = new byte[pieceSize];
+        this.theFile.read(piece, byteOffset, pieceSize);
+        return piece;
+    }
     //read config file helper
     private void readCFG() throws FileNotFoundException {
         ArrayList <String> cfgVars = new ArrayList<>();
@@ -94,12 +117,13 @@ public class Peer {
             }
             scanner.close();
         } catch(FileNotFoundException e) {
+            System.out.println("Could not read Common.cfg");
             e.printStackTrace();
         }
         this.numberOfPreferredNeighbors = Integer.parseInt(cfgVars.get(0));
         this.unchokingInterval = Integer.parseInt(cfgVars.get(1));
         this.optimisticUnchokingInterval = Integer.parseInt(cfgVars.get(2));
-        this.fileName = cfgVars.get(3);
+        this.filePath = "peer_" + this.ID + "\\" + cfgVars.get(3);
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
         this.pieceCount = (int) Math.ceil((double) fileSize / (double) pieceSize);
@@ -237,8 +261,8 @@ public class Peer {
     // Checks if peer has all parts of a file
     private boolean hasCompleteFile() {
         if (hasFile) return true;
-        for (int i = 0; i < bitfield.length; i++) {
-            if (!bitfield[i]) return false;
+        for (boolean b : bitfield) {
+            if (!b) return false;
         }
         hasFile = true;
         Logs log = new Logs();
@@ -250,7 +274,7 @@ public class Peer {
     public byte[] handshakeMsg() {
         byte[] byteArray = new byte[32];
         String initialString = "P2PFILESHARINGPROJ";
-        System.arraycopy(initialString.getBytes(), 0, byteArray, 0, Math.min(initialString.length(), 18));
+        System.arraycopy(initialString.getBytes(), 0, byteArray, 0, initialString.length());
         for (int i = 18; i < 28; i++) { byteArray[i] = 0; }
         String currPeerID = this.ID;
         System.arraycopy(currPeerID.getBytes(), 0, byteArray, 28, Math.min(currPeerID.length(), 4));
