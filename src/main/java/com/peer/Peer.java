@@ -18,9 +18,9 @@ import java.util.concurrent.*;
 
 public class Peer {
     //to be determined over course of runtime
-    private ArrayList<Peer> interestedPeers;
-    private ArrayList<Peer> preferredNeighbors;
-    private Peer optimisticNeighbor;
+    private ArrayList<String> interestedPeers;
+    private ArrayList<String> preferredNeighbors;
+    private String optimisticNeighbor;
 
     //determined by Config.cfg
     private int numberOfPreferredNeighbors;
@@ -43,9 +43,6 @@ public class Peer {
 
     // Tracks the peers who are connected and their respective client sockets
     public HashMap<String, PeerData> peerHM = new HashMap<>();
-    private Map<String, Integer> piecesDownloaded;
-
-    private int piecesLastIteration = 0;
 
     public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException {
         this.ID = peerId;
@@ -66,12 +63,8 @@ public class Peer {
         //schedule selecting neighbors
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-        Runnable choosePreferredNeighbors = () -> {
-            this.preferredNeighbors = determinePreferredNeighbors();
-        };
-        Runnable chooseOptimisticUnchokedNeighbor = () -> {
-            optimisticNeighbor = changeOptimisticNeighbor();
-        };
+        Runnable choosePreferredNeighbors = this::determinePreferredNeighbors;
+        Runnable chooseOptimisticUnchokedNeighbor = this::changeOptimisticNeighbor;
 
         scheduler.scheduleAtFixedRate(choosePreferredNeighbors, 0, unchokingInterval, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(chooseOptimisticUnchokedNeighbor, 0, optimisticUnchokingInterval, TimeUnit.SECONDS);
@@ -155,62 +148,46 @@ public class Peer {
         unchoked neighbor. To choke those neighbors, peer A sends ‘choke’ messages to them
         and stop sending pieces
     */
-    private ArrayList<Peer> determinePreferredNeighbors() {
+    private void determinePreferredNeighbors() {
         if (interestedPeers.size() <= numberOfPreferredNeighbors){
-            return interestedPeers;
+            preferredNeighbors = interestedPeers;
+            return;
         }
 
-        ArrayList<Double> downloadRates = new ArrayList<>();
+        HashMap<String, Double> downloadRatesHM = new HashMap<>();
 
         // Calculate download rates for each interested peer
-        for (Peer peer : interestedPeers) {
-            double downloadRate = calculateDownloadRate(peer);
-            downloadRates.add(downloadRate);
+        for (String peer : interestedPeers) {
+            double downloadRate = peerHM.get(peer).calculateDownloadRate();
+            downloadRatesHM.put(peer, downloadRate);
         }
 
         // Select the top k peers based on download rate
-        ArrayList<Peer> preferredNeighbors = new ArrayList<>();
+        ArrayList<String> preferredNeighborsArr = new ArrayList<>();
         for (int i = 0; i < numberOfPreferredNeighbors; i++) {
-            // Find the index of the peer with the highest download rate
-            int maxIndex = findMaxDownloadRateIndex(downloadRates);
-
-            preferredNeighbors.add(interestedPeers.get(maxIndex));
-
-            // Set the download rate of the selected peer to a very low value to avoid selecting it again
-            downloadRates.set(maxIndex, Double.MIN_VALUE);
+            String maxID = null;
+            double maxRate = Double.MIN_VALUE;
+            for (Map.Entry<String, Double> entry : downloadRatesHM.entrySet()) {
+                if (entry.getValue() > maxRate) {
+                    maxID = entry.getKey();
+                    maxRate = entry.getValue();
+                }
+            }
+            preferredNeighborsArr.add(maxID);
+            downloadRatesHM.remove(maxRate);
         }
 
         // Logging the preferred neighbors list
         Logs log = new Logs();
-        ArrayList<String> IDList = new ArrayList<>();
-        for (Peer peer : preferredNeighbors) {
-            IDList.add(peer.ID);
-        }
-        log.changeOfPreferredNeighborsLog(ID, IDList);
-
-        return preferredNeighbors;
+        log.changeOfPreferredNeighborsLog(ID, preferredNeighborsArr);
+        this.preferredNeighbors = preferredNeighborsArr;
     }
 
-    // Calculate download rate for a peer
-    private double calculateDownloadRate(Peer peer) {
-        int downloaded = peer.piecesDownloaded.get(peer.ID) - peer.piecesLastIteration;
-        peer.piecesLastIteration = peer.piecesDownloaded.get(peer.ID);
-        return downloaded;
+    public boolean determineInterest(boolean[] peerBitfield) {
+        for (int i = 0; i < pieceCount; i++) {
+            if (!bitfield[i] && peerBitfield[i]) return true;
+        } return false;
     }
-
-    // Find the index of the peer with the highest download rate
-    private int findMaxDownloadRateIndex(ArrayList<Double> downloadRates) {
-        double maxDownloadRate = Double.MIN_VALUE;
-        int maxIndex = -1;
-        for (int i = 0; i < downloadRates.size(); i++) {
-            if (downloadRates.get(i) > maxDownloadRate) {
-                maxDownloadRate = downloadRates.get(i);
-                maxIndex = i;
-            }
-        }
-        return maxIndex;
-    }
-
 
     // Selects random index of a piece that the peer needs from another peer
     private int selectPiece(Boolean[] peerBitField, String peer2ID) {
@@ -221,14 +198,6 @@ public class Peer {
             if (peerBitField[i] && !bitfield[i]) {
                 availableIndexes.add(i);
             }
-        }
-        //start pieces downloaded counter
-        if (!piecesDownloaded.containsKey(ID)){
-            piecesDownloaded.put(ID, 1);
-        }
-        else{
-            Integer temp = piecesDownloaded.get(ID);
-            piecesDownloaded.put(ID, temp + 1);
         }
 
         // Returns random index from available pieces
@@ -267,23 +236,22 @@ public class Peer {
     }
 
     //need a way to call this every interval and to determine if neighbor is not already unchoked
-    private Peer changeOptimisticNeighbor() {
-        ArrayList<Peer> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
+    private void changeOptimisticNeighbor() {
+        ArrayList<String> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
         potentialOptimisticNeighbors.removeAll(preferredNeighbors);
 
         if (!potentialOptimisticNeighbors.isEmpty()) {
             Random rand = new Random();
             int randomIndex = rand.nextInt(potentialOptimisticNeighbors.size());
 
-            Peer newOptimisticNeighbor = potentialOptimisticNeighbors.get(randomIndex);
+            String newOptimisticNeighbor = potentialOptimisticNeighbors.get(randomIndex);
 
             // Log the change of optimistic unchoked neighbor
             Logs log = new Logs();
-            log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor.ID);
+            log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor);
 
-            return newOptimisticNeighbor;
+            this.optimisticNeighbor = newOptimisticNeighbor;
         }
-        return optimisticNeighbor;
     }
 
     public boolean getHasFile() { return hasFile; }
