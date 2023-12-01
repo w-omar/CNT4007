@@ -63,6 +63,7 @@ public class Peer {
         Thread thread = new Thread(server);
         thread.start();
 
+        //schedule selecting neighbors
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
         Runnable choosePreferredNeighbors = () -> {

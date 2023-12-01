@@ -20,11 +20,12 @@ public class StartRemotePeers {
 
         private String peerID;
         private String hostName;
-
-        public PeerInfo(String peerID, String hostName) {
+        private boolean hasFile;
+        public PeerInfo(String peerID, String hostName, boolean hasFile) {
             super();
             this.peerID = peerID;
             this.hostName = hostName;
+            this.hasFile = hasFile;
         }
 
         public String getPeerID() {
@@ -42,10 +43,17 @@ public class StartRemotePeers {
         public void setHostName(String hostName) {
             this.hostName = hostName;
         }
-
+        public boolean getHasFile() {
+            return hasFile;
+        }
     }
 
     public static void main(String[] args) throws IOException {
+
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Usage: StartRemotePeers <file>");
+        }
+        String theFile = args[0];
 
         ArrayList<PeerInfo> peerList = new ArrayList<>();
         File sshConfig = new File("remoteLogin.cfg");
@@ -70,7 +78,7 @@ public class StartRemotePeers {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split("\\s+");
-                peerList.add(new PeerInfo(parts[0], parts[1]));
+                peerList.add(new PeerInfo(parts[0], parts[1], parts[3].equals("1")));
             }
             scanner.close();
         } catch (FileNotFoundException e) {
@@ -93,7 +101,13 @@ public class StartRemotePeers {
                     .getSession()) {
                 session.auth().verify(Duration.ofSeconds(10));
                 System.out.println("Session to peer# " + remotePeer.getPeerID() + " at " + remotePeer.getHostName());
-                String command = "cd CNT4007; java -cp target/classes peerProcess " + remotePeer.getPeerID();
+                String command = "cd CNT4007; mkdir peer_" + remotePeer.getPeerID();
+                if (remotePeer.getHasFile()) {
+                    command += "; cp " + theFile + " ./peer_" + remotePeer.getPeerID() + "/" + theFile;
+                }
+
+                command += "; java -cp target/classes peerProcess " + remotePeer.getPeerID();
+
                 try (OutputStream mergedOutput = new ByteArrayOutputStream();
                      ClientChannel channel = session.createExecChannel(command)) {
                     channel.setOut(mergedOutput);
