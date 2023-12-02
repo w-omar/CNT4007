@@ -114,7 +114,7 @@ public class Server implements Runnable{
 									currPeer.peerHM.get(peerID).chokedFrom = true;
 									break;
 								case UNCHOKE:
-									currPeer.peerHM.get(peerID).chokedFrom = false;
+									unchokeHelper(peerID);
 									break;
 								case INTERESTED:
 									if (!currPeer.interestedPeers.contains(peerID)) {
@@ -164,8 +164,10 @@ public class Server implements Runnable{
 									break;
 								case REQUEST:
 									requestHelper(peerID, message);
+									break;
 								case PIECE:
 									pieceHelper(peerID, message);
+									break;
 							}
 						}
 						// (REMOVE LATER) Displays peers currently connected to
@@ -198,6 +200,14 @@ public class Server implements Runnable{
 			}
 		}
 
+		private void unchokeHelper(String peerID) {
+			currPeer.peerHM.get(peerID).chokedFrom = false;
+			boolean[] peerBF = currPeer.peerHM.get(peerID).bitfield;
+			int index = currPeer.selectPiece(peerBF);
+			byte[] requestMsg = Message.buildMsg(Type.REQUEST, index);
+			sendMessage(peerID, requestMsg);
+		};
+
 		//logic to execute upon receipt of "request"
 		private void requestHelper(String requesterID, Message request) throws IOException {
 			//check if requester is unchoked, exits if not
@@ -220,11 +230,16 @@ public class Server implements Runnable{
 			sendMessage(requesterID, pieceMessage);
 		}
 		//response logic for "piece"
-		private void pieceHelper(String PID, Message piece) throws IOException{
+		private void pieceHelper(String peer2ID, Message piece) throws IOException{
 			int index = ByteBuffer.wrap(Arrays.copyOf(piece.getPayload(), 4)).getInt();
 			byte[] pieceData = Arrays.copyOfRange(piece.getPayload(), 4, piece.getPayloadLength());
 			//write to file
 			currPeer.writePiece(index, pieceData);
+			//Log piece download
+			Logs log = new Logs();
+			log.downloadingLog(currPeer.ID, peer2ID, index, currPeer.pieceCount);
+			//Write completed download log if hasCompleteFile
+			currPeer.hasCompleteFile();
 			//send have messages
 			byte[] haveMsg = Message.buildMsg(Type.HAVE, index);
 			for (String peerID : idHM.values()) {
@@ -239,11 +254,11 @@ public class Server implements Runnable{
 						sendMessage(data.id, notInterestedMsg);
 				}
 			}
-			if (currPeer.peerHM.get(PID).interesting && !currPeer.peerHM.get(PID).chokedFrom) {
-				boolean[] peer_bf = currPeer.peerHM.get(PID).bitfield;
-				int index_piece = currPeer.selectPiece(peer_bf, PID);
+			if (currPeer.peerHM.get(peer2ID).interesting && !currPeer.peerHM.get(peer2ID).chokedFrom) {
+				boolean[] peer_bf = currPeer.peerHM.get(peer2ID).bitfield;
+				int index_piece = currPeer.selectPiece(peer_bf, peer2ID);
 				byte[] req_msg = Message.buildMsg(Type.REQUEST, index_piece);
-				sendMessage(PID, req_msg);
+				sendMessage(peer2ID, req_msg);
 			}
 		}
 		// Compares raw byte streams to a string

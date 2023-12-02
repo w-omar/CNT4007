@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.lang.Math;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -29,10 +30,11 @@ public class Peer {
     private int fileSize;
     private int pieceSize;
     public int pieceCount;
-    private Path filePath;
+    private String filePath;
+    private String fileName;
     private final RandomAccessFile theFile;
     //dictated by peerProcess
-    private final String ID;
+    public final String ID;
     private final int portNumber;
     private boolean hasFile;
     public boolean[] bitfield;
@@ -43,8 +45,8 @@ public class Peer {
     public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException, IOException {
         this.ID = peerId;
         this.portNumber = port;
-        this.hasFile = hasFile;
         readCFG();
+        this.hasFile = hasFile;
         this.theFile = openP2PFile();
         initBitfield();
         init();
@@ -71,8 +73,14 @@ public class Peer {
 
     //opens file to read/write to
     private RandomAccessFile openP2PFile() throws IOException {
+        Path fullPath = Paths.get(filePath + "/" + fileName);
+        if (!hasFile) {
+            Path parentDir = Paths.get(filePath);
+            Files.createDirectories(parentDir);
+            Files.createFile(fullPath);
+        }
         RandomAccessFile theFile = null;
-        theFile = new RandomAccessFile(filePath.toFile(), "rw");
+        theFile = new RandomAccessFile(fullPath.toFile(), "rw");
         theFile.setLength((long) pieceCount * pieceSize);
         return theFile;
     }
@@ -129,7 +137,8 @@ public class Peer {
         this.numberOfPreferredNeighbors = Integer.parseInt(cfgVars.get(0));
         this.unchokingInterval = Integer.parseInt(cfgVars.get(1));
         this.optimisticUnchokingInterval = Integer.parseInt(cfgVars.get(2));
-        this.filePath = Paths.get("peer_" + this.ID, cfgVars.get(3));
+        this.filePath = "peer_" + this.ID;
+        this.fileName = cfgVars.get(3);
         this.fileSize = Integer.parseInt(cfgVars.get(4));
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
         this.pieceCount = (int) Math.ceil((double) fileSize / (double) pieceSize);
@@ -269,10 +278,10 @@ public class Peer {
     }
 
     // Selects random index of a piece that the peer needs from another peer
-    private int selectPiece(Boolean[] peerBitField, String peer2ID) {
+    public int selectPiece(boolean[] peerBitField) {
         // Populates an array with all indices of valid pieces
         Logs log = new Logs();
-        ArrayList<Integer> availableIndexes = new ArrayList<Integer>();
+        ArrayList<Integer> availableIndexes = new ArrayList<>();
         for (int i = 0; i < pieceCount; i++) {
             if (peerBitField[i] && !bitfield[i]) {
                 availableIndexes.add(i);
@@ -282,18 +291,14 @@ public class Peer {
         // Returns random index from available pieces
         if (!availableIndexes.isEmpty()) {
             Random rand = new Random();
-            Integer pieceInd = availableIndexes.get(rand.nextInt(availableIndexes.size()));
-            //Download Log
-            log.downloadingLog(ID, peer2ID, pieceInd, pieceSize);
-
-            return pieceInd;
+            return availableIndexes.get(rand.nextInt(availableIndexes.size()));
         } else{
             return -1;
         }
     }
 
     // Checks if peer has all parts of a file
-    private boolean hasCompleteFile() {
+    public boolean hasCompleteFile() {
         if (hasFile) return true;
         for (boolean b : bitfield) {
             if (!b) return false;
