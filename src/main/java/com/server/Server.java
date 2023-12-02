@@ -113,7 +113,7 @@ public class Server implements Runnable{
 									currPeer.peerHM.get(peerID).chokedFrom = true;
 									break;
 								case UNCHOKE:
-									currPeer.peerHM.get(peerID).chokedFrom = false;
+									unchokeHelper(peerID);
 									break;
 								case INTERESTED:
 									if (!currPeer.interestedPeers.contains(peerID)) {
@@ -196,6 +196,14 @@ public class Server implements Runnable{
 				}
 			}
 		}
+
+		private void unchokeHelper(String peerID) {
+			currPeer.peerHM.get(peerID).chokedFrom = false;
+			boolean[] peerBF = currPeer.peerHM.get(peerID).bitfield;
+			int index = currPeer.selectPiece(peerBF);
+			byte[] requestMsg = Message.buildMsg(Type.REQUEST, index);
+			sendMessage(peerID, requestMsg);
+		};
 
 		//logic to execute upon receipt of "request"
 		private void requestHelper(String requesterID, Message request) throws IOException {
