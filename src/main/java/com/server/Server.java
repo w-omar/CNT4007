@@ -111,23 +111,31 @@ public class Server implements Runnable{
 							//TODO: Response Logic
 							switch (message.getType()) {
 								case CHOKE:
+									log.chokingLog(currPeer.ID, peerID);
 									currPeer.peerHM.get(peerID).chokedFrom = true;
 									break;
 								case UNCHOKE:
+                  log.unchokingLog(currPeer.ID, peerID);
 									unchokeHelper(peerID);
 									break;
 								case INTERESTED:
+									log.interestedLog(currPeer.ID, peerID);
 									if (!currPeer.interestedPeers.contains(peerID)) {
 										currPeer.interestedPeers.add(peerID);
 									}
 									break;
 								case NOTINTERESTED:
+									log.notInterestedLog(currPeer.ID, peerID);
 									currPeer.interestedPeers.remove(peerID);
 									break;
 								case HAVE:
 									// Update local copy of this peer's bitfield
+
 									int pieceIdx = ByteBuffer.wrap(message.getPayload()).getInt();
 									currPeer.peerHM.get(peerID).bitfield[pieceIdx] = true;
+
+									//Log have
+									log.haveLog(currPeer.ID, peerID, pieceIdx);
 
 									// Determine if interested after receiving new bit
 									if (currPeer.determineInterest(currPeer.peerHM.get(peerID).bitfield)) {
