@@ -9,6 +9,7 @@ import java.util.*;
 import Message.Message;
 import Message.Message.Type;
 import com.peer.Peer;
+import com.peer.PeerData;
 import Logs.Logs;
 
 public class Server implements Runnable{
@@ -164,7 +165,7 @@ public class Server implements Runnable{
 								case REQUEST:
 									requestHelper(peerID, message);
 								case PIECE:
-									pieceHelper(message);
+									pieceHelper(peerID, message);
 							}
 						}
 						// (REMOVE LATER) Displays peers currently connected to
@@ -219,7 +220,7 @@ public class Server implements Runnable{
 			sendMessage(requesterID, pieceMessage);
 		}
 		//response logic for "piece"
-		private void pieceHelper(Message piece) throws IOException{
+		private void pieceHelper(String PID, Message piece) throws IOException{
 			int index = ByteBuffer.wrap(Arrays.copyOf(piece.getPayload(), 4)).getInt();
 			byte[] pieceData = Arrays.copyOfRange(piece.getPayload(), 4, piece.getPayloadLength());
 			//write to file
@@ -228,6 +229,21 @@ public class Server implements Runnable{
 			byte[] haveMsg = Message.buildMsg(Type.HAVE, index);
 			for (String peerID : idHM.values()) {
 				sendMessage(peerID, haveMsg);
+
+			}
+			// determine interest
+			for (PeerData data : currPeer.peerHM.values()) {
+				if (data.interesting && !currPeer.determineInterest(data.bitfield)) {
+						data.interesting = false;
+						byte[] notInterestedMsg =  Message.buildMsg(Type.NOTINTERESTED);
+						sendMessage(data.id, notInterestedMsg);
+				}
+			}
+			if (currPeer.peerHM.get(PID).interesting && !currPeer.peerHM.get(PID).chokedFrom) {
+				boolean[] peer_bf = currPeer.peerHM.get(PID).bitfield;
+				int index_piece = currPeer.selectPiece(peer_bf, PID);
+				byte[] req_msg = Message.buildMsg(Type.REQUEST, index_piece);
+				sendMessage(PID, req_msg);
 			}
 		}
 		// Compares raw byte streams to a string
