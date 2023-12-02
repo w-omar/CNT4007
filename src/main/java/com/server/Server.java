@@ -110,8 +110,10 @@ public class Server implements Runnable{
 							//TODO: Response Logic
 							switch (message.getType()) {
 								case CHOKE:
+									currPeer.peerHM.get(peerID).chokedFrom = true;
 									break;
 								case UNCHOKE:
+									currPeer.peerHM.get(peerID).chokedFrom = false;
 									break;
 								case INTERESTED:
 									if (!currPeer.interestedPeers.contains(peerID)) {

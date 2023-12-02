@@ -1,6 +1,7 @@
 package com.peer;
 
 import Logs.Logs;
+import Message.Message;
 import com.client.Client;
 import com.server.Server;
 import com.peer.PeerData;
@@ -175,13 +176,12 @@ public class Peer {
         and stop sending pieces
     */
     private void determinePreferredNeighbors() {
+        // If the number of interested peers is less than number of preferred peers
         if (interestedPeers.size() <= numberOfPreferredNeighbors){
             preferredNeighbors = interestedPeers;
-            return;
         }
-
-        // Selects random interested peers if it has full file
-        if (hasCompleteFile()) {
+        // If current peer has the file, randomly selected preferred peers
+        else if (hasCompleteFile()) {
             ArrayList<String> tempPeers = interestedPeers;
             ArrayList<String> selectedPeers = new ArrayList<>();
             for (int i = 0; i < numberOfPreferredNeighbors; i++) {
@@ -191,43 +191,64 @@ public class Peer {
                 tempPeers.remove(randIdx);
             }
             preferredNeighbors = selectedPeers;
-            return;
         }
+        // All other cases
+        else {
+            // Calculate download rates for each interested peer
+            HashMap<String, Double> downloadRatesHM = new HashMap<>();
+            for (String peer : interestedPeers) {
+                double downloadRate = peerHM.get(peer).calculateDownloadRate();
+                downloadRatesHM.put(peer, downloadRate);
+            }
 
-        // All other cases: Calculate download rates for each interested peer
-        HashMap<String, Double> downloadRatesHM = new HashMap<>();
-        for (String peer : interestedPeers) {
-            double downloadRate = peerHM.get(peer).calculateDownloadRate();
-            downloadRatesHM.put(peer, downloadRate);
-        }
-
-        // Select the top k peers based on download rate
-        ArrayList<String> preferredNeighborsArr = new ArrayList<>();
-        for (int i = 0; i < numberOfPreferredNeighbors; i++) {
-            String maxID = null;
-            double maxRate = Double.MIN_VALUE;
-            for (Map.Entry<String, Double> entry : downloadRatesHM.entrySet()) {
-                if (entry.getValue() > maxRate) {
-                    maxID = entry.getKey();
-                    maxRate = entry.getValue();
-                }
-                // If same value, randomly break tie
-                else if (entry.getValue() == maxRate) {
-                    Random rand = new Random();
-                    if (rand.nextInt(2) == 1) {
+            // Select the top k peers based on download rate
+            ArrayList<String> preferredNeighborsArr = new ArrayList<>();
+            for (int i = 0; i < numberOfPreferredNeighbors; i++) {
+                String maxID = null;
+                double maxRate = Double.MIN_VALUE;
+                for (Map.Entry<String, Double> entry : downloadRatesHM.entrySet()) {
+                    if (entry.getValue() > maxRate) {
                         maxID = entry.getKey();
                         maxRate = entry.getValue();
                     }
+                    // If same value, randomly break tie
+                    else if (entry.getValue() == maxRate) {
+                        Random rand = new Random();
+                        if (rand.nextInt(2) == 1) {
+                            maxID = entry.getKey();
+                            maxRate = entry.getValue();
+                        }
+                    }
                 }
+                preferredNeighborsArr.add(maxID);
+                downloadRatesHM.remove(maxRate);
             }
-            preferredNeighborsArr.add(maxID);
-            downloadRatesHM.remove(maxRate);
+
+            // Logging the preferred neighbors list
+            Logs log = new Logs();
+            log.changeOfPreferredNeighborsLog(ID, preferredNeighborsArr);
+            preferredNeighbors = preferredNeighborsArr;
         }
 
-        // Logging the preferred neighbors list
-        Logs log = new Logs();
-        log.changeOfPreferredNeighborsLog(ID, preferredNeighborsArr);
-        this.preferredNeighbors = preferredNeighborsArr;
+        // Unchoke those who are now preferred (if they need to be unchoked)
+        for (String peerID : preferredNeighbors) {
+            if (peerHM.get(peerID).isChoked) {
+                peerHM.get(peerID).isChoked = false;
+                byte[] unchokeMsg = Message.buildMsg(Message.Type.UNCHOKE);
+                peerHM.get(peerID).cliSock.sendMessage(unchokeMsg);
+            }
+        }
+
+        // Choke those who are not preferred (if they need to be choked)
+        ArrayList<String> chokedPeers = interestedPeers;
+        chokedPeers.removeAll(preferredNeighbors);
+        for (String peerID : chokedPeers) {
+            if (!peerHM.get(peerID).isChoked) {
+                peerHM.get(peerID).isChoked = true;
+                byte[] chokeMsg = Message.buildMsg(Message.Type.CHOKE);
+                peerHM.get(peerID).cliSock.sendMessage(chokeMsg);
+            }
+        }
     }
 
     public boolean determineInterest(boolean[] peerBitfield) {
@@ -298,7 +319,20 @@ public class Peer {
             Logs log = new Logs();
             log.changeOfOptimisticallyUnchokedNeighborLog(ID, newOptimisticNeighbor);
 
-            this.optimisticNeighbor = newOptimisticNeighbor;
+            // Choke the old optimistic neighbor
+            if (!peerHM.get(optimisticNeighbor).isChoked) {
+                peerHM.get(optimisticNeighbor).isChoked = true;
+                byte[] chokeMsg = Message.buildMsg(Message.Type.CHOKE);
+                peerHM.get(optimisticNeighbor).cliSock.sendMessage(chokeMsg);
+            }
+
+            optimisticNeighbor = newOptimisticNeighbor;
+            // Unchoke the new optimistic neighbor
+            if(peerHM.get(optimisticNeighbor).isChoked) {
+                peerHM.get(optimisticNeighbor).isChoked = false;
+                byte[] unchokeMsg = Message.buildMsg(Message.Type.UNCHOKE);
+                peerHM.get(optimisticNeighbor).cliSock.sendMessage(unchokeMsg);
+            }
         }
     }
 
