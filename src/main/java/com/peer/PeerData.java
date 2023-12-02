@@ -14,11 +14,12 @@ public class PeerData {
     public int piecesLastIteration = 0;
 
     // Peers who we choked and who we are choked from
-    public boolean isChoked = false;
+    public boolean isChoked = true;
     public boolean chokedFrom = false;
 
-    public PeerData(Client cliSock) {
+    public PeerData(Client cliSock, String peerID) {
         this.cliSock = cliSock;
+        this.id = peerID;
     }
 
     // Calculate download rate for a peer
