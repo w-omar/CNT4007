@@ -218,10 +218,6 @@ public class Server implements Runnable{
 
 		//logic to execute upon receipt of "request"
 		private void requestHelper(String requesterID, Message request) throws IOException {
-			//check if requester is unchoked, exits if not
-			if (!currPeer.getUnchokedNeighborIDs().contains(requesterID)) {
-				return;
-			}
 			//check if we have the piece, exits if we don't
 			int requestedPieceIndex = ByteBuffer.wrap(request.getPayload()).getInt();
 			if (!currPeer.hasPiece(requestedPieceIndex)) {

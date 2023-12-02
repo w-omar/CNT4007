@@ -110,7 +110,9 @@ public class Peer {
         }
         int byteOffset = index * pieceSize;
         byte[] piece = new byte[pieceSize];
-        this.theFile.read(piece, byteOffset, pieceSize);
+        this.theFile.seek(byteOffset);
+        this.theFile.read(piece);
+        this.theFile.seek(0);
         return piece;
     }
     //read config file helper
@@ -180,7 +182,9 @@ public class Peer {
         if (index < 0 || index >= pieceCount)
             throw new IndexOutOfBoundsException("Tried to write a piece to an OOB index");
         //write piece
-        theFile.write(piece, index * pieceSize, pieceSize);
+        theFile.seek(index * pieceSize);
+        theFile.write(piece);
+        theFile.seek(0);
         //update bitfield
         bitfield[index] = true;
     }
