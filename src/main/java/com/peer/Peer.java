@@ -278,10 +278,10 @@ public class Peer {
     }
 
     // Selects random index of a piece that the peer needs from another peer
-    private int selectPiece(Boolean[] peerBitField, String peer2ID) {
+    public int selectPiece(boolean[] peerBitField) {
         // Populates an array with all indices of valid pieces
         Logs log = new Logs();
-        ArrayList<Integer> availableIndexes = new ArrayList<Integer>();
+        ArrayList<Integer> availableIndexes = new ArrayList<>();
         for (int i = 0; i < pieceCount; i++) {
             if (peerBitField[i] && !bitfield[i]) {
                 availableIndexes.add(i);
@@ -291,11 +291,7 @@ public class Peer {
         // Returns random index from available pieces
         if (!availableIndexes.isEmpty()) {
             Random rand = new Random();
-            Integer pieceInd = availableIndexes.get(rand.nextInt(availableIndexes.size()));
-            //Download Log
-            log.downloadingLog(ID, peer2ID, pieceInd, pieceSize);
-
-            return pieceInd;
+            return availableIndexes.get(rand.nextInt(availableIndexes.size()));
         } else{
             return -1;
         }
