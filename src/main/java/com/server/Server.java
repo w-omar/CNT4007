@@ -9,6 +9,7 @@ import java.util.*;
 import Message.Message;
 import Message.Message.Type;
 import com.peer.Peer;
+import com.peer.PeerData;
 import Logs.Logs;
 
 public class Server implements Runnable{
@@ -243,6 +244,21 @@ public class Server implements Runnable{
 			byte[] haveMsg = Message.buildMsg(Type.HAVE, index);
 			for (String peerID : idHM.values()) {
 				sendMessage(peerID, haveMsg);
+
+			}
+			// determine interest
+			for (PeerData data : currPeer.peerHM.values()) {
+				if (data.interesting && !currPeer.determineInterest(data.bitfield)) {
+						data.interesting = false;
+						byte[] notInterestedMsg =  Message.buildMsg(Type.NOTINTERESTED);
+						sendMessage(data.id, notInterestedMsg);
+				}
+			}
+			if (currPeer.peerHM.get(peer2ID).interesting && !currPeer.peerHM.get(peer2ID).chokedFrom) {
+				boolean[] peer_bf = currPeer.peerHM.get(peer2ID).bitfield;
+				int index_piece = currPeer.selectPiece(peer_bf, peer2ID);
+				byte[] req_msg = Message.buildMsg(Type.REQUEST, index_piece);
+				sendMessage(peer2ID, req_msg);
 			}
 		}
 		// Compares raw byte streams to a string

@@ -158,7 +158,7 @@ public class Peer {
 
         // Opens new socket to the specified peer
         Client client = new Client(hostName, port);
-        PeerData newPeer = new PeerData(client);
+        PeerData newPeer = new PeerData(client, peerID);
         Thread thread = new Thread(client);
         thread.start();
 

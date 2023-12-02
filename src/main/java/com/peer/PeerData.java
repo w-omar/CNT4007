@@ -17,8 +17,9 @@ public class PeerData {
     public boolean isChoked = true;
     public boolean chokedFrom = false;
 
-    public PeerData(Client cliSock) {
+    public PeerData(Client cliSock, String peerID) {
         this.cliSock = cliSock;
+        this.id = peerID;
     }
 
     // Calculate download rate for a peer
