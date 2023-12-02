@@ -162,7 +162,7 @@ public class Server implements Runnable{
 								case REQUEST:
 									requestHelper(peerID, message);
 								case PIECE:
-									break;
+									pieceHelper(message);
 							}
 						}
 						// (REMOVE LATER) Displays peers currently connected to
@@ -207,9 +207,26 @@ public class Server implements Runnable{
 				return;
 			}
 			//read data from our file
-			byte[] pieceMessage = Message.buildMsg(currPeer.getPiece(requestedPieceIndex));
+			//msg data is the piece index (4 bytes) + the piece itself
+			byte[] msgData = Arrays.copyOf(request.getPayload(), 4 + currPeer.getPieceSize());
+			byte[] pieceData = currPeer.getPiece(requestedPieceIndex);
+			System.arraycopy(pieceData, 0, msgData, 4, currPeer.getPieceSize());
+
+			byte[] pieceMessage = Message.buildMsg(msgData);
 			//send the message to requester
 			sendMessage(requesterID, pieceMessage);
+		}
+		//response logic for "piece"
+		private void pieceHelper(Message piece) throws IOException{
+			int index = ByteBuffer.wrap(Arrays.copyOf(piece.getPayload(), 4)).getInt();
+			byte[] pieceData = Arrays.copyOfRange(piece.getPayload(), 4, piece.getPayloadLength());
+			//write to file
+			currPeer.writePiece(index, pieceData);
+			//send have messages
+			byte[] haveMsg = Message.buildMsg(Type.HAVE, index);
+			for (String peerID : idHM.values()) {
+				sendMessage(peerID, haveMsg);
+			}
 		}
 		// Compares raw byte streams to a string
 		private static boolean compareBytesToString(byte[] byteArray, String targetString, int length) {

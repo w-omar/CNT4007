@@ -78,6 +78,9 @@ public class Peer {
     public int getPortNumber() {
         return portNumber;
     }
+    public int getPieceSize() {
+        return pieceSize;
+    }
     //returns bitfield[index] or false if index is OOB
     public boolean hasPiece(int index){
         if (index < 0 || index >= pieceCount)
@@ -130,7 +133,6 @@ public class Peer {
         this.pieceSize = Integer.parseInt(cfgVars.get(5));
         this.pieceCount = (int) Math.ceil((double) fileSize / (double) pieceSize);
     }
-    //writes to log
 
     //initializes bitfields
     public void initBitfield(){
@@ -163,6 +165,15 @@ public class Peer {
         while(!client.sendMessage(handshakeMsg()));
     }
 
+    //writes received piece to theFile
+    public void writePiece(int index, byte[] piece) throws IOException{
+        if (index < 0 || index >= pieceCount)
+            throw new IndexOutOfBoundsException("Tried to write a piece to an OOB index");
+        //write piece
+        theFile.write(piece, index * pieceSize, pieceSize);
+        //update bitfield
+        bitfield[index] = true;
+    }
     /*  peer A calculates the downloading rate from each of its neighbors,
         respectively, during the previous unchoking interval. Among neighbors that are interested
         in its data, peer A picks k neighbors that has fed its data at the highest rate. If more than
