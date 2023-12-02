@@ -33,7 +33,7 @@ public class Peer {
     //dictated by peerProcess
     private final String ID;
     private final int portNumber;
-    private final boolean hasFile;
+    private boolean hasFile;
     public boolean[] bitfield;
 
     // Tracks the peers who are connected and their respective client sockets
