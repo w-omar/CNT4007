@@ -256,7 +256,7 @@ public class Server implements Runnable{
 			}
 			if (currPeer.peerHM.get(peer2ID).interesting && !currPeer.peerHM.get(peer2ID).chokedFrom) {
 				boolean[] peer_bf = currPeer.peerHM.get(peer2ID).bitfield;
-				int index_piece = currPeer.selectPiece(peer_bf, peer2ID);
+				int index_piece = currPeer.selectPiece(peer_bf);
 				byte[] req_msg = Message.buildMsg(Type.REQUEST, index_piece);
 				sendMessage(peer2ID, req_msg);
 			}
