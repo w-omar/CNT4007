@@ -34,7 +34,7 @@ public class Peer {
     private String fileName;
     private final RandomAccessFile theFile;
     //dictated by peerProcess
-    private final String ID;
+    public final String ID;
     private final int portNumber;
     private boolean hasFile;
     public boolean[] bitfield;
@@ -302,7 +302,7 @@ public class Peer {
     }
 
     // Checks if peer has all parts of a file
-    private boolean hasCompleteFile() {
+    public boolean hasCompleteFile() {
         if (hasFile) return true;
         for (boolean b : bitfield) {
             if (!b) return false;

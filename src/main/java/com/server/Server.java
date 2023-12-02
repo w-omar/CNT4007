@@ -164,7 +164,7 @@ public class Server implements Runnable{
 								case REQUEST:
 									requestHelper(peerID, message);
 								case PIECE:
-									pieceHelper(message);
+									pieceHelper(peerID, message);
 							}
 						}
 						// (REMOVE LATER) Displays peers currently connected to
@@ -219,11 +219,16 @@ public class Server implements Runnable{
 			sendMessage(requesterID, pieceMessage);
 		}
 		//response logic for "piece"
-		private void pieceHelper(Message piece) throws IOException{
+		private void pieceHelper(String peer2ID, Message piece) throws IOException{
 			int index = ByteBuffer.wrap(Arrays.copyOf(piece.getPayload(), 4)).getInt();
 			byte[] pieceData = Arrays.copyOfRange(piece.getPayload(), 4, piece.getPayloadLength());
 			//write to file
 			currPeer.writePiece(index, pieceData);
+			//Log piece download
+			Logs log = new Logs();
+			log.downloadingLog(currPeer.ID, peer2ID, index, currPeer.pieceCount);
+			//Write completed download log if hasCompleteFile
+			currPeer.hasCompleteFile();
 			//send have messages
 			byte[] haveMsg = Message.buildMsg(Type.HAVE, index);
 			for (String peerID : idHM.values()) {

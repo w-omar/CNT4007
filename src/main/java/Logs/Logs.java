@@ -37,7 +37,7 @@ public class Logs {
     */
 
     private void writeToLogFile(String peerID, String message) {
-        String fileName = "log_peer_" + peerID + ".log";
+        String fileName = '/' + peerID + '/' + peerID + ".log";
         try (FileWriter writer = new FileWriter(fileName, true)) {
             writer.write(message + "\n");
             System.out.println("Data has been written to " + fileName);
