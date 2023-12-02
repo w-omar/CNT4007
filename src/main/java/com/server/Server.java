@@ -163,8 +163,10 @@ public class Server implements Runnable{
 									break;
 								case REQUEST:
 									requestHelper(peerID, message);
+									break;
 								case PIECE:
 									pieceHelper(peerID, message);
+									break;
 							}
 						}
 						// (REMOVE LATER) Displays peers currently connected to
