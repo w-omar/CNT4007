@@ -94,7 +94,7 @@ public class Message {
 
     //Msg for piece
     public static byte[] buildMsg(byte[] data) {
-        byte[] prefix = buildPrefix(Type.PIECE, data.length + 1);
+        byte[] prefix = buildPrefix(Type.PIECE, 1 + data.length);
         byte[] retMsg = new byte[prefix.length + data.length];
         System.arraycopy(prefix, 0, retMsg, 0, prefix.length);
         System.arraycopy(data, 0, retMsg, prefix.length, data.length);
