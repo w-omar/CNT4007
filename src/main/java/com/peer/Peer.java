@@ -277,7 +277,7 @@ public class Peer {
                     }
                 }
                 preferredNeighborsArr.add(maxID);
-                downloadRatesHM.remove(maxRate);
+                downloadRatesHM.remove(maxID);
             }
 
             // Logging the preferred neighbors list
