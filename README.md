@@ -8,7 +8,7 @@ i.e. What you were able to achieve and what you were not.
 View our video demo [here](youtube.com) or follow these instructions:
 1. Install apache maven on remote machine
 ```
-wget https://downloads.apache.org/maven/maven-3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz
+wget https://downloads.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz
 tar -zxvf apache-maven-3.9.5-bin.tar.gz
 mv apache-maven-3.9.5 ~/maven
 ```
