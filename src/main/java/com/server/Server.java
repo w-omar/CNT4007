@@ -122,13 +122,13 @@ public class Server implements Runnable{
 									break;
 								case INTERESTED:
 									log.interestedLog(currPeer.ID, peerID);
-									if (!currPeer.interestedPeers.contains(peerID)) {
-										currPeer.interestedPeers.add(peerID);
+									if (!currPeer.getInterestedPeers().contains(peerID)) {
+										currPeer.addInterestedPeer(peerID);
 									}
 									break;
 								case NOTINTERESTED:
 									log.notInterestedLog(currPeer.ID, peerID);
-									currPeer.interestedPeers.remove(peerID);
+									currPeer.removeInterestedPeer(peerID);
 									break;
 								case HAVE:
 									// Update local copy of this peer's bitfield
@@ -166,6 +166,7 @@ public class Server implements Runnable{
 									// Record incoming bitfield
 									boolean[] peerBF = Message.getBFFromMsg(message, currPeer.pieceCount);
 									currPeer.peerHM.get(peerID).bitfield = peerBF;
+									currPeer.peerHM.get(peerID).calculatePiecesLeft();
 
 									// Determines if interested in this new peer
 									if (currPeer.determineInterest(peerBF)) {
@@ -182,10 +183,10 @@ public class Server implements Runnable{
 									break;
 							}
 						}
-                        // Check if all peers have file to terminate
+						// Check if all peers have file to terminate
 						boolean allPeersHaveFile = true;
 						for (PeerData peer : currPeer.peerHM.values()) {
-							if (!currPeer.hasCompleteFile() || peer.piecesLeft != 0) {
+							if (!currPeer.hasFile || peer.piecesLeft > 0) {
 								allPeersHaveFile = false;
 							}
 						}
@@ -251,7 +252,7 @@ public class Server implements Runnable{
 			//Log piece download
 			currPeer.piecesDownloadedCount++;
 			Logs log = new Logs();
-			log.downloadingLog(currPeer.ID, peer2ID, index, currPeer.piecesDownloadedCount);
+			log.downloadingLog(currPeer.ID, peer2ID, index, currPeer.pieceCount - currPeer.peerHM.get(peer2ID).piecesLeft);
 			//Write completed download log if hasCompleteFile
 			currPeer.hasCompleteFile();
 			//send have messages

@@ -8,7 +8,7 @@ public class PeerData {
     public boolean handShook = false;
     public boolean interesting = false;
     public boolean[] bitfield;
-    public int piecesLeft;
+    public int piecesLeft = Integer.MAX_VALUE;
     // For calculating preferred peers
     public int piecesDownloaded = 0;
     public int piecesLastIteration = 0;
@@ -21,7 +21,6 @@ public class PeerData {
         this.cliSock = cliSock;
         this.id = peerID;
         if (hasFile) piecesLeft = 0;
-        else piecesLeft = pieceCount;
     }
 
     // Calculate download rate for a peer
@@ -29,5 +28,12 @@ public class PeerData {
         int downloaded = piecesDownloaded - piecesLastIteration;
         piecesLastIteration = piecesDownloaded;
         return downloaded;
+    }
+
+    public void calculatePiecesLeft() {
+        piecesLeft = 0;
+        for (int i = 0; i < bitfield.length; i++) {
+            if (!bitfield[i]) piecesLeft++;
+        }
     }
 }
