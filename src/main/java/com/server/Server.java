@@ -249,8 +249,9 @@ public class Server implements Runnable{
 			//write to file
 			currPeer.writePiece(index, pieceData);
 			//Log piece download
+			currPeer.piecesDownloadedCount++;
 			Logs log = new Logs();
-			log.downloadingLog(currPeer.ID, peer2ID, index, currPeer.pieceCount);
+			log.downloadingLog(currPeer.ID, peer2ID, index, currPeer.piecesDownloadedCount);
 			//Write completed download log if hasCompleteFile
 			currPeer.hasCompleteFile();
 			//send have messages
