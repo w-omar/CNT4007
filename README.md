@@ -12,7 +12,7 @@ wget https://downloads.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.
 tar -zxvf apache-maven-3.9.5-bin.tar.gz
 mv apache-maven-3.9.5 ~/maven
 ```
-2. Add the following lines to your `.tcsh` file
+2. Add the following lines to your `.tcshrc` file and run `source ~/.tcshrc`
 ```
 setenv M2_HOME ~/maven
 set path = ($path $M2_HOME/bin)
@@ -32,13 +32,16 @@ mvn clean package
 - Extract `CNT4007.tar.gz` on your local machine
 - Open in IntelliJ
 - Right click `pom.xml` and select "Add as Maven Project"
-- Navigate: Run -> Edit Configuration -> StartRemotePeers
-- Enter `<filename>` into Program Arguments 
+- Navigate: Run -> Edit Configuration -> Add New Configuration -> Application
+- Enter `StartRemotePeers` into Main class
+- Enter `<filename>` into Program Arguments
+- Apply
 - enable passwordless ssh from your local machine
 ```
-ssh-copy-id ~/.ssh/<key> <username>@lin114-00.cise.ufl.edu
+ssh-copy-id -i ~/.ssh/<key> <username>@lin114-00.cise.ufl.edu
 ```
 - enter your CISE username into `remoteLogin.cfg`
+- ensure an exact copy of `PeerInfo.cfg` is present in the local machines project directory
 8. Run StartRemotePeers
 
 ### Contributors
