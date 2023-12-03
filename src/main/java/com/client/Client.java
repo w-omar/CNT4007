@@ -70,7 +70,7 @@ public class Client implements Runnable {
             for(int i = 0; i < msg.length; i++) {
                 hexMsg += String.format("%02X", msg[i]) + " ";
             }
-            System.out.println("Sent this message: " + hexMsg);
+            //System.out.println("Sent this message: " + hexMsg);
 
         } catch(IOException ioException) {
             ioException.printStackTrace();
