@@ -29,6 +29,7 @@ public class Peer {
     private int fileSize;
     private int pieceSize;
     public int pieceCount;
+    public int piecesDownloadedCount = 0;
     private String filePath;
     private String fileName;
     private final RandomAccessFile theFile;
