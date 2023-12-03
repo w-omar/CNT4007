@@ -12,11 +12,10 @@ public class Client implements Runnable {
     Socket requestSocket;           //socket connect to the server
     ObjectOutputStream out;         //stream write to the socket
     ObjectInputStream in;          //stream read from the socket
-    String message;                //message send to the server
-    String MESSAGE;                //capitalized message read from the server
 
     String servHostName;
     int servPort;
+    public static volatile boolean isRunning = true;
 
     public Client(String servHostName, int servPort) {
         this.servHostName = servHostName;
@@ -37,7 +36,7 @@ public class Client implements Runnable {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 
             // Keeps thread from closing
-            while(true);
+            while(Client.isRunning);
         } catch (ConnectException e) {
             System.err.println("Connection refused. You need to initiate a server first.");
         } catch (UnknownHostException unknownHost) {
@@ -85,5 +84,8 @@ public class Client implements Runnable {
         client.run();
     }
 
+    public static void stopRunning() {
+        isRunning = false;
+    }
 }
 

@@ -4,7 +4,6 @@ import Logs.Logs;
 import Message.Message;
 import com.client.Client;
 import com.server.Server;
-import com.peer.PeerData;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,6 +37,7 @@ public class Peer {
     private final int portNumber;
     private boolean hasFile;
     public boolean[] bitfield;
+    public Server server;
 
     // Tracks the peers who are connected and their respective client sockets
     public HashMap<String, PeerData> peerHM = new HashMap<>();
@@ -55,7 +55,7 @@ public class Peer {
     // Initiates listening server
     private void init(){
         //Start server
-        Server server = new Server(this, portNumber);
+        server = new Server(this, portNumber);
         Thread thread = new Thread(server);
         thread.start();
 
@@ -156,11 +156,11 @@ public class Peer {
     }
 
     //connect to peer
-    public void establishConnection(String peerID, String hostName, int port) throws IOException, InterruptedException {
+    public void establishConnection(String peerID, String hostName, int port, boolean hasFile) throws IOException, InterruptedException {
 
         // Opens new socket to the specified peer
         Client client = new Client(hostName, port);
-        PeerData newPeer = new PeerData(client, peerID);
+        PeerData newPeer = new PeerData(client, peerID, hasFile, pieceCount);
         Thread thread = new Thread(client);
         thread.start();
 
@@ -354,6 +354,12 @@ public class Peer {
                 peerHM.get(optimisticNeighbor).cliSock.sendMessage(unchokeMsg);
             }
         }
+    }
+
+    public void terminateProcesses() {
+        Client.stopRunning();
+        Server.stopRunning();
+        System.exit(0);
     }
 
     public boolean getHasFile() { return hasFile; }

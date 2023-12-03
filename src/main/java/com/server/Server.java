@@ -5,6 +5,7 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import Message.Message;
 import Message.Message.Type;
@@ -17,6 +18,7 @@ public class Server implements Runnable{
 	private int port;
 	private static Peer currPeer;
 	private static HashMap<String, String> idHM = new HashMap<>();
+	public static volatile boolean isRunning = true;
 
 	public Server(Peer currPeer, int port) {
 		this.currPeer = currPeer;
@@ -34,7 +36,7 @@ public class Server implements Runnable{
 		}
 		int clientNum = 1;
 		try {
-			while (true) {
+			while (isRunning) {
 				new Handler(listener.accept(), clientNum).start();
 				clientNum++;
 			}
@@ -53,7 +55,7 @@ public class Server implements Runnable{
 	 * A handler thread class.  Handlers are spawned from the listening
 	 * loop and are responsible for dealing with a single client's requests.
 	 */
-	private static class Handler extends Thread {
+	private class Handler extends Thread {
 		private Message message;    //message received from the client
 		private String MESSAGE;    //uppercase message send to the client
 		private Socket connection;
@@ -73,7 +75,7 @@ public class Server implements Runnable{
 				out.flush();
 				in = new ObjectInputStream(connection.getInputStream());
 				try{
-					while(true)
+					while(Server.isRunning)
 					{
 						// Raw message received from incoming client socket
 						byte[] byteArray = (byte[]) in.readObject();
@@ -91,7 +93,7 @@ public class Server implements Runnable{
 							if (!currPeer.peerHM.containsKey(peerID)) {
 								idHM.put(uniqueIdent, peerID);
 								String[] peerInfo = getPeerInfo(peerID);
-								currPeer.establishConnection(peerID, peerInfo[0], Integer.parseInt(peerInfo[1]));
+								currPeer.establishConnection(peerID, peerInfo[0], Integer.parseInt(peerInfo[1]), peerInfo[2].equals("1"));
 							} else {
 								// The return handshake has been received, can now send bitfield
 								idHM.put(uniqueIdent, peerID);
@@ -115,7 +117,7 @@ public class Server implements Runnable{
 									currPeer.peerHM.get(peerID).chokedFrom = true;
 									break;
 								case UNCHOKE:
-                  log.unchokingLog(currPeer.ID, peerID);
+                                    log.unchokingLog(currPeer.ID, peerID);
 									unchokeHelper(peerID);
 									break;
 								case INTERESTED:
@@ -130,9 +132,9 @@ public class Server implements Runnable{
 									break;
 								case HAVE:
 									// Update local copy of this peer's bitfield
-
 									int pieceIdx = ByteBuffer.wrap(message.getPayload()).getInt();
 									currPeer.peerHM.get(peerID).bitfield[pieceIdx] = true;
+									currPeer.peerHM.get(peerID).piecesLeft--;
 
 									//Log have
 									log.haveLog(currPeer.ID, peerID, pieceIdx);
@@ -147,9 +149,11 @@ public class Server implements Runnable{
 										}
 									} else {
 										// Not interested anymore, send not interested msg
-										byte[] notInterestedMsg = Message.buildMsg(Type.NOTINTERESTED);
-										currPeer.peerHM.get(peerID).cliSock.sendMessage(notInterestedMsg);
-										currPeer.peerHM.get(peerID).interesting = false;
+										if (currPeer.peerHM.get(peerID).interesting) {
+											byte[] notInterestedMsg = Message.buildMsg(Type.NOTINTERESTED);
+											currPeer.peerHM.get(peerID).cliSock.sendMessage(notInterestedMsg);
+											currPeer.peerHM.get(peerID).interesting = false;
+										}
 									}
 									break;
 								case BITFIELD:
@@ -178,10 +182,15 @@ public class Server implements Runnable{
 									break;
 							}
 						}
-						// (REMOVE LATER) Displays peers currently connected to
-						System.out.println("Current Peer List");
-						for(String peerID : currPeer.peerHM.keySet()) {
-							System.out.println(peerID);
+                        // Check if all peers have file to terminate
+						boolean allPeersHaveFile = true;
+						for (PeerData peer : currPeer.peerHM.values()) {
+							if (!currPeer.hasCompleteFile() || peer.piecesLeft != 0) {
+								allPeersHaveFile = false;
+							}
+						}
+						if (allPeersHaveFile) {
+							currPeer.terminateProcesses();
 						}
 					}
 				} catch(ClassNotFoundException classnot){
@@ -266,7 +275,7 @@ public class Server implements Runnable{
 			}
 		}
 		// Compares raw byte streams to a string
-		private static boolean compareBytesToString(byte[] byteArray, String targetString, int length) {
+		private boolean compareBytesToString(byte[] byteArray, String targetString, int length) {
 			if (byteArray.length < length) return false;
 			String byteArraySubstring = new String(byteArray, 0, length);
 			return byteArraySubstring.equals(targetString);
@@ -300,5 +309,8 @@ public class Server implements Runnable{
 			}
 			return peerInfo;
 		}
+	}
+	public static void stopRunning() {
+		isRunning = false;
 	}
 }
