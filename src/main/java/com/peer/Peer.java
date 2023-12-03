@@ -15,6 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Peer {
     //to be determined over course of runtime
@@ -36,12 +38,41 @@ public class Peer {
     //dictated by peerProcess
     public final String ID;
     private final int portNumber;
-    private boolean hasFile;
+    public boolean hasFile;
     public boolean[] bitfield;
     public Server server;
 
     // Tracks the peers who are connected and their respective client sockets
-    public HashMap<String, PeerData> peerHM = new HashMap<>();
+    public ConcurrentHashMap<String, PeerData> peerHM = new ConcurrentHashMap<>();
+
+    private final ReadWriteLock interestedPeersLock = new ReentrantReadWriteLock();
+
+    public ArrayList<String> getInterestedPeers() {
+        interestedPeersLock.readLock().lock();
+        try {
+            return new ArrayList<>(interestedPeers);
+        } finally {
+            interestedPeersLock.readLock().unlock();
+        }
+    }
+
+    public void addInterestedPeer(String peerID) {
+        interestedPeersLock.writeLock().lock();
+        try {
+            interestedPeers.add(peerID);
+        } finally {
+            interestedPeersLock.writeLock().unlock();
+        }
+    }
+
+    public void removeInterestedPeer(String peerID) {
+        interestedPeersLock.writeLock().lock();
+        try {
+            interestedPeers.remove(peerID);
+        } finally {
+            interestedPeersLock.writeLock().unlock();
+        }
+    }
 
     public Peer(String peerId, int port, boolean hasFile) throws FileNotFoundException, IOException {
         this.ID = peerId;
@@ -202,12 +233,12 @@ public class Peer {
     */
     private void determinePreferredNeighbors() {
         // If the number of interested peers is less than number of preferred peers
-        if (interestedPeers.size() <= numberOfPreferredNeighbors){
-            preferredNeighbors = interestedPeers;
+        if (getInterestedPeers().size() <= numberOfPreferredNeighbors){
+            preferredNeighbors = getInterestedPeers();
         }
         // If current peer has the file, randomly selected preferred peers
         else if (hasCompleteFile()) {
-            ArrayList<String> tempPeers = interestedPeers;
+            ArrayList<String> tempPeers = getInterestedPeers();
             ArrayList<String> selectedPeers = new ArrayList<>();
             for (int i = 0; i < numberOfPreferredNeighbors; i++) {
                 Random rand = new Random();
@@ -221,7 +252,7 @@ public class Peer {
         else {
             // Calculate download rates for each interested peer
             HashMap<String, Double> downloadRatesHM = new HashMap<>();
-            for (String peer : interestedPeers) {
+            for (String peer : getInterestedPeers()) {
                 double downloadRate = peerHM.get(peer).calculateDownloadRate();
                 downloadRatesHM.put(peer, downloadRate);
             }
@@ -265,7 +296,7 @@ public class Peer {
         }
 
         // Choke those who are not preferred (if they need to be choked)
-        ArrayList<String> chokedPeers = interestedPeers;
+        ArrayList<String> chokedPeers = getInterestedPeers();
         chokedPeers.removeAll(preferredNeighbors);
         for (String peerID : chokedPeers) {
             if (!peerHM.get(peerID).isChoked) {
@@ -327,7 +358,7 @@ public class Peer {
 
     //need a way to call this every interval and to determine if neighbor is not already unchoked
     private void changeOptimisticNeighbor() {
-        ArrayList<String> potentialOptimisticNeighbors = new ArrayList<>(interestedPeers);
+        ArrayList<String> potentialOptimisticNeighbors = new ArrayList<>(getInterestedPeers());
         potentialOptimisticNeighbors.removeAll(preferredNeighbors);
 
         if (!potentialOptimisticNeighbors.isEmpty()) {
