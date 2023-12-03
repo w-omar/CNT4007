@@ -39,7 +39,7 @@ public class peerProcess {
         }
         Peer peer = new Peer(peerID, port, hasFile);
         for (String[] peerToConnect : peersToConnect) {
-            peer.establishConnection(peerToConnect[0], peerToConnect[1], Integer.parseInt(peerToConnect[2]));
+            peer.establishConnection(peerToConnect[0], peerToConnect[1], Integer.parseInt(peerToConnect[2]), peerToConnect[3].equals("1"));
         }
     }
 }
