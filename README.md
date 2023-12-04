@@ -2,10 +2,8 @@
 
 The goal of this project is to share files between hosts using a peer to peer file sharing protocol.
 
-### Achievements
-i.e. What you were able to achieve and what you were not.
 ### Build Instructions
-View our video demo [here](youtube.com) or follow these instructions:
+View our video demo [here](https://youtu.be/_VA_7HviY-0) or follow these instructions:
 1. Install apache maven on remote machine
 ```
 wget https://downloads.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz
